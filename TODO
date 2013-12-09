@@ -1,0 +1,3 @@
+Lexer:
+	- Implement read-ahead by N tokens (_tokens_ not characters) with a buffer
+	- Allow query of read-ahead buffer

@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 
+#include "lexer_utils.hpp"
+
 enum TokenType {
     IDENTIFIER,
     OPERATOR,
@@ -13,7 +15,6 @@ enum TokenType {
     PAREN_CLOSE
 };
 
-std::string next_utf8(std::istream &in);
 
 class Lexer
 {
