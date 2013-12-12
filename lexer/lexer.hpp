@@ -5,38 +5,32 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "lexer_utils.hpp"
 
 enum TokenType {
+    UNKNOWN,
     IDENTIFIER,
     OPERATOR,
     PAREN_OPEN,
-    PAREN_CLOSE
+    PAREN_CLOSE,
+    SQUARE_OPEN,
+    SQUARE_CLOSE,
+    CURLY_OPEN,
+    CURLY_CLOSE
+};
+
+struct Token {
+	TokenType type;
+	std::string str;
 };
 
 
-class Lexer
-{
-public:
-	// TODO: change to use move semantics once gcc implements them for streams.
-	// This current implementation of the constructor is delicate
-	Lexer(std::istream* input): in {*input} {
-		cur_c = next_utf8(in);
-	}
+/**
+ * Takes an input string encoded in utf8 and lexes it into a vector of tokens.
+ */
+std::vector<Token> lex_string(const std::string& input);
 
-	std::string next();
-
-	//std::string token();
-
-	//TokenType token_type();
-
-
-private:
-	std::istream& in;
-	std::string cur_c;
-	std::string current_token;
-	TokenType current_token_type;
-};
 
 #endif // DATASTORE_HPP

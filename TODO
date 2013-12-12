@@ -1,3 +1,4 @@
 Lexer:
-	- Implement read-ahead by N tokens (_tokens_ not characters) with a buffer
-	- Allow query of read-ahead buffer
+	- Figure out what unique token types you need
+	- Add those token types to the lexer
+	- Add unit tests for the lexer

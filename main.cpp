@@ -14,16 +14,23 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	std::ifstream f {argv[1]};
 
-	Lexer l {&f};
+	// Read the file into a string
+	std::ifstream f(argv[1], std::ios::in | std::ios::binary);
+	std::string contents;
+	if (f) {
+		f.seekg(0, std::ios::end);
+		contents.resize(f.tellg());
+		f.seekg(0, std::ios::beg);
+		f.read(&contents[0], contents.size());
+		f.close();
+	}
 
-	std::string s;
 
-	s = l.next();
-	while (s != std::string("")) {
-		std::cout << s << std::endl;
-		s = l.next();
+	auto tokens = lex_string(contents);
+
+	for (auto& t: tokens) {
+		std::cout << "Token: " << t.type << " " << t.str << std::endl;
 	}
 
 	return 0;
