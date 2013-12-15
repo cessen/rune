@@ -9,8 +9,10 @@
  *
  * @param in  Reference to a const string iterator where the parsing is to begin.
  * @param end Reference to the corresponding end iterator for the string.
+ *
+ * TODO: throw an exception on malformed codepoints.
  */
-static inline std::string next_utf8(std::string::const_iterator& in, std::string::const_iterator& end)
+static inline std::string cur_utf8(const std::string::const_iterator& in, const std::string::const_iterator& end)
 {
 	const unsigned char* c = reinterpret_cast<const unsigned char*>(&(*in));
 
@@ -44,8 +46,19 @@ static inline std::string next_utf8(std::string::const_iterator& in, std::string
 	}
 
 	// Success!
-	in += len;
-	return std::string(in-len, in);
+	return std::string(in, in+len);
+}
+
+/**
+ * Like cur_utf8, except it advances the string iterator after parsing the token.
+ */
+static inline std::string next_utf8(std::string::const_iterator& in, const std::string::const_iterator& end)
+{
+	std::string c = cur_utf8(in, end);
+
+	in += c.length();
+
+	return c;
 }
 
 
@@ -59,8 +72,6 @@ static inline bool is_ws_char(const std::string& s)
 
 	switch (s[0]) {
 		case ' ':
-		case '\n':
-		case '\r':
 		case '\t':
 			return true;
 		default:
@@ -68,6 +79,41 @@ static inline bool is_ws_char(const std::string& s)
 	}
 
 	return false;
+}
+
+
+/**
+ * Returns whether the given utf character is a newline or not.
+ */
+static inline bool is_nl_char(const std::string& s)
+{
+	if (s.length() == 0)
+		return false;
+
+	switch (s[0]) {
+		case '\n':
+		case '\r':
+			return true;
+		default:
+			break;
+	}
+
+	return false;
+}
+
+
+/**
+ * Returns whether the given utf character is a newline or not.
+ */
+static inline bool is_comment_char(const std::string& s)
+{
+	if (s.length() == 0)
+		return false;
+
+	if (s[0] == '#')
+		return true;
+	else
+		return false;
 }
 
 
@@ -126,7 +172,6 @@ static inline bool is_op_char(const std::string& s)
 		case '>':
 		case '?':
 		case '@':
-		case '#':
 		case '$':
 		case '~':
 			return true;
@@ -175,7 +220,7 @@ static inline bool is_ident_char(const std::string& s)
 		return false;
 
 	// Anything that isn't whitespace, reserved, or an operator character
-	if (!is_ws_char(s) && !is_reserved_char(s) && !is_op_char(s))
+	if (!is_ws_char(s) && !is_nl_char(s) && !is_reserved_char(s) && !is_op_char(s))
 		return true;
 
 	return false;

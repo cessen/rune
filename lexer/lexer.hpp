@@ -1,9 +1,6 @@
 #ifndef LEXER_HPP
 #define LEXER_HPP
 
-#include <utility>
-#include <fstream>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -11,14 +8,14 @@
 
 enum TokenType {
     UNKNOWN,
+    COMMENT,
     IDENTIFIER,
     OPERATOR,
-    PAREN_OPEN,
-    PAREN_CLOSE,
-    SQUARE_OPEN,
-    SQUARE_CLOSE,
-    CURLY_OPEN,
-    CURLY_CLOSE
+    INTEGER_LIT,
+    FLOAT_LIT,
+    STRING_LIT,
+    NEWLINE,
+    RESERVED
 };
 
 struct Token {
