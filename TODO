@@ -1,4 +1,4 @@
 Lexer:
-	- Figure out what unique token types you need
-	- Add those token types to the lexer
+	//- Figure out what unique token types you need
+	//- Add those token types to the lexer
 	- Add unit tests for the lexer

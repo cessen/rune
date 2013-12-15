@@ -15,6 +15,8 @@ int main(int argc, char** argv)
 	}
 
 
+	std::cout << "Reading file..." << std::endl;
+
 	// Read the file into a string
 	std::ifstream f(argv[1], std::ios::in | std::ios::binary);
 	std::string contents;
@@ -26,11 +28,14 @@ int main(int argc, char** argv)
 		f.close();
 	}
 
+	std::cout << "Lexing..." << std::endl;
 
 	auto tokens = lex_string(contents);
 
-	for (auto& t: tokens) {
-		std::cout << "Token: " << t.type << " " << t.str << std::endl;
+	if (argc > 2) {
+		for (auto& t: tokens) {
+			std::cout << "Token: " << t.type << " " << t.str << std::endl;
+		}
 	}
 
 	return 0;
