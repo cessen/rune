@@ -58,7 +58,8 @@ Token lex_token(std::string::const_iterator& str_iter, const std::string::const_
 				}
 			} while (open != 0  && cur_c != "");
 
-			cur_c = next_utf8(str_iter, str_itr_end); // Consume the last "#"
+			if (open == 0)
+				cur_c = next_utf8(str_iter, str_itr_end); // Consume the last "#"
 		}
 
 		token.type = COMMENT;
@@ -74,7 +75,7 @@ Token lex_token(std::string::const_iterator& str_iter, const std::string::const_
 		token.type = IDENTIFIER;
 	}
 
-	// If it's a number
+	// If it's a number literal
 	else if (is_digit_char(cur_c)) {
 		int dot_count = 0;
 
@@ -95,6 +96,72 @@ Token lex_token(std::string::const_iterator& str_iter, const std::string::const_
 		} else {
 			token.type = UNKNOWN;
 		}
+	}
+
+	// If it's a string literal
+	else if (cur_c == "\"" || cur_c == "'") {
+		// Basic string literal
+		if (cur_c == "\"") {
+			// TODO: handle escape sequences
+			cur_c = next_utf8(str_iter, str_itr_end);
+			while (cur_c != "\"" && cur_c != "") {
+				token.str.append(cur_c);
+				cur_c = next_utf8(str_iter, str_itr_end);
+			}
+
+			if (cur_c == "\"")
+				cur_c = next_utf8(str_iter, str_itr_end); // Consume last "
+
+			token.type = STRING_LIT;
+		}
+		// Raw string literal
+		else {
+			// Get opening ' count
+			int q_count = 0;
+			do {
+				++q_count;
+				cur_c = next_utf8(str_iter, str_itr_end);
+			} while (cur_c == "'");
+
+			// If it doesn't end in " it's malformed
+			if (cur_c != "\"") {
+				for (int i = 0; i < q_count; ++i)
+					token.str.append("'");
+				token.type = UNKNOWN;
+			} else {
+				cur_c = next_utf8(str_iter, str_itr_end);
+				while (cur_c != "") {
+					// Check for closing pattern
+					if (cur_c == "\"") {
+						int cq_count = 0;
+						cur_c = next_utf8(str_iter, str_itr_end);
+						while (cur_c == "'" && cq_count < q_count) {
+							++cq_count;
+							cur_c = next_utf8(str_iter, str_itr_end);
+						}
+
+						if (cq_count == q_count) {
+							break;
+						} else {
+							token.str.append("\"");
+							for (int i = 0; i < cq_count; ++i)
+								token.str.append("'");
+						}
+						str_iter -= cur_c.length(); // Back up to last non-quote character
+					}
+					// Otherwise just consume normally
+					else {
+						token.str.append(cur_c);
+					}
+					cur_c = next_utf8(str_iter, str_itr_end);
+				}
+				token.type = STRING_LIT;
+			}
+		}
+
+
+
+
 	}
 
 	// If it's an operator
