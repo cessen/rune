@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "lexer.hpp"
+#include "parser.hpp"
 
 int main(int argc, char** argv)
 {
@@ -33,9 +34,7 @@ int main(int argc, char** argv)
 	auto tokens = lex_string(contents);
 
 	if (argc > 2) {
-		for (auto& t: tokens) {
-			std::cout << "Token: " << t.type << " " << t.str << std::endl;
-		}
+		parse_tokens(tokens);
 	}
 
 	return 0;

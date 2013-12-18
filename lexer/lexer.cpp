@@ -1,5 +1,6 @@
 #include "lexer.hpp"
 #include "lexer_utils.hpp"
+#include "tokens.hpp"
 
 #include <iostream>
 #include <string>

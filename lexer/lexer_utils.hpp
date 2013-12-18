@@ -2,6 +2,15 @@
 #define LEXER_UTILS_HPP
 
 #include <string>
+#include <exception>
+
+class utf8_parse_error: std::exception
+{
+public:
+	virtual const char* what() const noexcept {
+		return "Invalid UTF8 sequence.";
+	}
+};
 
 /**
  * Fetches a single, complete UTF8 code point, returning it as a std::string.
@@ -36,13 +45,13 @@ static inline std::string cur_utf8(const std::string::const_iterator& in, const 
 
 	// Abort if malformed
 	if (len == 0 || len > (end-in))
-		return std::string("");
+		throw utf8_parse_error {};
 
 	// Read the rest of the bytes of the codepoint,
 	// checking for malformed bytes.
 	for (int i = 1; i < len; ++i) {
 		if ((c[i] & 0b11000000) != 0b10000000)
-			return std::string("");  // Abort, malformed
+			throw utf8_parse_error {}; // Abort, malformed
 	}
 
 	// Success!

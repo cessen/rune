@@ -55,8 +55,11 @@ link_directories (${Boost_LIBRARY_DIRS})
 #--------------------------------------
 include_directories ("${PROJECT_BINARY_DIR}",
 					 "${PROJECT_SOURCE_DIR}",
-					 "${PROJECT_SOURCE_DIR}/test"
+					 "${PROJECT_SOURCE_DIR}/test",
+					 "${PROJECT_SOURCE_DIR}/ast",
 					 "${PROJECT_SOURCE_DIR}/lexer",
+					 "${PROJECT_SOURCE_DIR}/parser",
+					 "${PROJECT_SOURCE_DIR}/tokens",
 					)
 
 
@@ -64,6 +67,7 @@ include_directories ("${PROJECT_BINARY_DIR}",
 # Build
 #--------------------------------------
 add_subdirectory(lexer)
+add_subdirectory(parser)
 
 
 
@@ -75,6 +79,7 @@ add_subdirectory(lexer)
 # Main library
 set (NLANG_LIB
 	lexer
+	parser
 	)
 
 # Main executable
