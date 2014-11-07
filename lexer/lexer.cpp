@@ -243,6 +243,7 @@ Token lex_string_literal(std::string::const_iterator& str_iter, const std::strin
 
 Token lex_comment(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end)
 {
+	// TODO: parse multiple comments without non-whitespace interruption together
 	Token token;
 	std::string cur_c = next_utf8(str_iter, str_itr_end);
 
