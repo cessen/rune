@@ -2,3 +2,14 @@ Lexer:
 	//- Figure out what unique token types you need
 	//- Add those token types to the lexer
 	- Add unit tests for the lexer
+
+Parser:
+	- Figure out the basic classes and structures of your ast
+	- Write a basic recursive descent parser just for basic expressions
+	- Write a recursive descent parser for expression sequences
+	- Write a recursive descent parser for expressions that handles bracketed function calls
+	- Write a recursive descent parser that handles prefix and infix function calls
+	- "" that handles variable declaration
+	
+Code generation:
+	- Write a coder generator (...?) that generates C

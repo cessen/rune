@@ -10,6 +10,7 @@
 Token lex_string_literal(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end);
 Token lex_comment(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end);
 Token lex_number_literal(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end);
+void check_for_keyword(Token& token);
 
 
 /**
@@ -19,7 +20,7 @@ Token lex_number_literal(std::string::const_iterator& str_iter, const std::strin
  */
 Token lex_token(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end)
 {
-	Token token {UNKNOWN, ""};
+	Token token;
 
 	std::string cur_c = next_utf8(str_iter, str_itr_end);
 
@@ -52,6 +53,10 @@ Token lex_token(std::string::const_iterator& str_iter, const std::string::const_
 		} while (is_ident_char(cur_c));
 
 		token.type = IDENTIFIER;
+
+		// Check if the identifier is actually a
+		// keyword, and if so update accordingly
+		check_for_keyword(token);
 	}
 
 	// If it's an operator
@@ -69,7 +74,41 @@ Token lex_token(std::string::const_iterator& str_iter, const std::string::const_
 		token.str = cur_c;
 		cur_c = next_utf8(str_iter, str_itr_end);
 
-		token.type = RESERVED;
+		switch (token.str[0]) {
+			case '(':
+				token.type = LPAREN;
+				break;
+			case ')':
+				token.type = RPAREN;
+				break;
+			case '[':
+				token.type = LSQUARE;
+				break;
+			case ']':
+				token.type = RSQUARE;
+				break;
+			case '{':
+				token.type = LCURLY;
+				break;
+			case '}':
+				token.type = RCURLY;
+				break;
+			case ',':
+				token.type = COMMA;
+				break;
+			case '.':
+				token.type = PERIOD;
+				break;
+			case ':':
+				token.type = COLON;
+				break;
+			case '`':
+				token.type = BACKTICK;
+				break;
+			default:
+				token.type = RESERVED;
+				break;
+		}
 	}
 
 	// If it's a newline
@@ -95,7 +134,7 @@ Token lex_token(std::string::const_iterator& str_iter, const std::string::const_
 
 Token lex_string_literal(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end)
 {
-	Token token {UNKNOWN, ""};
+	Token token;
 	std::string cur_c = next_utf8(str_iter, str_itr_end);
 
 	// Basic string literal
@@ -204,50 +243,15 @@ Token lex_string_literal(std::string::const_iterator& str_iter, const std::strin
 
 Token lex_comment(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end)
 {
-	Token token {UNKNOWN, ""};
+	Token token;
 	std::string cur_c = next_utf8(str_iter, str_itr_end);
 
 	if (cur_c == "#") {
 		cur_c = next_utf8(str_iter, str_itr_end);
 
-		// Single-line comment (easy case)
-		if (cur_c != "=") {
-			while (!is_nl_char(cur_c) && cur_c != "") {
-				token.str.append(cur_c);
-				cur_c = next_utf8(str_iter, str_itr_end);
-			}
-		}
-		// Multi-line comment (tricky case--must nest properly)
-		else {
-			int open = 1;
-
-			do {
-				cur_c = next_utf8(str_iter, str_itr_end);
-				// Open comment
-				if (cur_c == "#" && cur_utf8(str_iter, str_itr_end) == "=") {
-					++open;
-					token.str.append(cur_c);
-					cur_c = next_utf8(str_iter, str_itr_end);
-					token.str.append(cur_c);
-				}
-				// Close comment
-				else if (cur_c == "=" && cur_utf8(str_iter, str_itr_end) == "#") {
-					--open;
-					if (open == 0) {
-						// If it's the last close, don't include it in the comment string
-						cur_c = next_utf8(str_iter, str_itr_end);
-					} else {
-						token.str.append(cur_c);
-						cur_c = next_utf8(str_iter, str_itr_end);
-						token.str.append(cur_c);
-					}
-				} else {
-					token.str.append(cur_c);
-				}
-			} while (open != 0  && cur_c != "");
-
-			if (open == 0)
-				cur_c = next_utf8(str_iter, str_itr_end); // Consume the last "#"
+		while (!is_nl_char(cur_c) && cur_c != "") {
+			token.str.append(cur_c);
+			cur_c = next_utf8(str_iter, str_itr_end);
 		}
 
 		token.type = COMMENT;
@@ -260,7 +264,7 @@ Token lex_comment(std::string::const_iterator& str_iter, const std::string::cons
 
 Token lex_number_literal(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end)
 {
-	Token token {UNKNOWN, ""};
+	Token token;
 	std::string cur_c = next_utf8(str_iter, str_itr_end);
 
 	if (is_digit_char(cur_c)) {
@@ -288,7 +292,18 @@ Token lex_number_literal(std::string::const_iterator& str_iter, const std::strin
 }
 
 
-
+void check_for_keyword(Token& token)
+{
+	if (token.str == "fn") {
+		token.type = K_FN;
+	} else if (token.str == "struct") {
+		token.type = K_STRUCT;
+	} else if (token.str == "let") {
+		token.type = K_LET;
+	} else if (token.str == "return") {
+		token.type = K_RETURN;
+	}
+}
 
 ////////////////////////////////////////////////////////////////
 

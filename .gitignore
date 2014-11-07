@@ -1,4 +1,5 @@
 *.o
 *.so
 *.a
-*.orig
+*.orig~
+.zedstate

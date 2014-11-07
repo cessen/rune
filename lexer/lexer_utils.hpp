@@ -19,7 +19,7 @@ public:
  * @param in  Reference to a const string iterator where the parsing is to begin.
  * @param end Reference to the corresponding end iterator for the string.
  *
- * TODO: throw an exception on malformed codepoints.
+ * Throws a utf8_parse_error exception on malformed utf8 input.
  */
 static inline std::string cur_utf8(const std::string::const_iterator& in, const std::string::const_iterator& end)
 {
@@ -30,28 +30,27 @@ static inline std::string cur_utf8(const std::string::const_iterator& in, const 
 
 	// Determine the length of the encoded codepoint
 	int len = 0;
-	if ((c[0] & 0b10000000) == 0b00000000)
+	if (c[0] < 0b10000000)
 		len = 1;
-	else if ((c[0] & 0b11100000) == 0b11000000)
+	else if (c[0] < 0b11000000)
+		throw utf8_parse_error {}; // Malformed: continuation byte as first byte
+	else if (c[0] < 0b11100000)
 		len = 2;
-	else if ((c[0] & 0b11110000) == 0b11100000)
+	else if (c[0] < 0b11110000)
 		len = 3;
-	else if ((c[0] & 0b11111000) == 0b11110000)
+	else if (c[0] < 0b11111000)
 		len = 4;
-	else if ((c[0] & 0b11111100) == 0b11111000)
-		len = 5;
-	else if ((c[0] & 0b11111110) == 0b11111100)
-		len = 6;
+	else
+		throw utf8_parse_error {}; // Malformed: current utf8 standard only allows up to four bytes
 
-	// Abort if malformed
 	if (len == 0 || len > (end-in))
-		throw utf8_parse_error {};
+		throw utf8_parse_error {}; // Malformed: not enough bytes
 
 	// Read the rest of the bytes of the codepoint,
-	// checking for malformed bytes.
+	// making sure they're proper continuation bytes
 	for (int i = 1; i < len; ++i) {
 		if ((c[i] & 0b11000000) != 0b10000000)
-			throw utf8_parse_error {}; // Abort, malformed
+			throw utf8_parse_error {}; // Malformed: not a continuation byte
 	}
 
 	// Success!
@@ -149,6 +148,8 @@ static inline bool is_reserved_char(const std::string& s)
 		case ';':
 		case '.':
 		case ',':
+		case '$':
+		case '%':
 			return true;
 		default:
 			break;
@@ -172,7 +173,6 @@ static inline bool is_op_char(const std::string& s)
 		case '-':
 		case '*':
 		case '/':
-		case '%':
 		case '!':
 		case '^':
 		case '&':
@@ -181,7 +181,6 @@ static inline bool is_op_char(const std::string& s)
 		case '>':
 		case '?':
 		case '@':
-		case '$':
 		case '~':
 			return true;
 		default:
