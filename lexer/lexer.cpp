@@ -30,7 +30,7 @@ class Lexer
 		}
 
 		str_iter += cur_c.size();
-		cur_c = cur_utf8(str_iter, str_iter_end);
+		cur_utf8(&cur_c, str_iter, str_iter_end);
 	}
 
 	void init_token() {
@@ -43,7 +43,7 @@ class Lexer
 
 public:
 	Lexer(const std::string::const_iterator& str_iter, const std::string::const_iterator& str_iter_end): str_iter {str_iter}, str_iter_end {str_iter_end} {
-		cur_c = cur_utf8(str_iter, str_iter_end);
+		cur_utf8(&cur_c, str_iter, str_iter_end);
 	}
 
 

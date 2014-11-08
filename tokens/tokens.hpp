@@ -28,7 +28,7 @@ struct StringSlice {
 		return true;
 	}
 
-	bool operator==(const char* str) const {
+	bool operator==(const char* const str) const {
 		const auto length = std::distance(iter, end);
 
 		int i = 0;
