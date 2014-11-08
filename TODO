@@ -1,9 +1,9 @@
 Lexer:
 	//- Figure out what unique token types you need
 	//- Add those token types to the lexer
-	- Change tokens to index into a big string of the file contents instead
-	  of storing their own heap-allocated strings.
-	- Have tokens store their line and column number from the source file
+	//- Change tokens to index into a big string of the file contents instead
+	//  of storing their own heap-allocated strings.
+	//- Have tokens store their line and column number from the source file
 	- Add unit tests for the lexer
 
 Parser:

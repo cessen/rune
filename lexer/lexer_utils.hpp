@@ -14,7 +14,7 @@ public:
 
 /**
  * Fetches a single, complete UTF8 code point, returning it as a std::string.
- * Returns an empty string on a malformed codepoint.
+ * Returns an empty string when there's nothing left to read.
  *
  * @param in  Reference to a const string iterator where the parsing is to begin.
  * @param end Reference to the corresponding end iterator for the string.
