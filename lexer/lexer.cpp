@@ -7,9 +7,6 @@
 #include <vector>
 
 
-Token lex_string_literal(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end);
-Token lex_comment(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end);
-Token lex_number_literal(std::string::const_iterator& str_iter, const std::string::const_iterator& str_itr_end);
 void check_for_keyword(Token& token);
 
 class Lexer
@@ -21,25 +18,6 @@ class Lexer
 	std::string cur_c = "";
 	Token token;
 
-	void next_char() {
-		if (cur_c == "\n") {
-			++line_number;
-			column_number = 0;
-		} else {
-			column_number += cur_c.size();
-		}
-
-		str_iter += cur_c.size();
-		cur_utf8(&cur_c, str_iter, str_iter_end);
-	}
-
-	void init_token() {
-		token.type = UNKNOWN;
-		token.line = line_number;
-		token.column = column_number;
-		token.text.iter = str_iter;
-		token.text.end = str_iter;
-	}
 
 public:
 	Lexer(const std::string::const_iterator& str_iter, const std::string::const_iterator& str_iter_end): str_iter {str_iter}, str_iter_end {str_iter_end} {
@@ -143,7 +121,13 @@ public:
 
 		// If it's a newline
 		else if (is_nl_char(cur_c)) {
-			next_char();
+			// Consume all subsequent whitespace and newlines,
+			// so that multiple newlines in a row end up as a single
+			// newline token.
+			while (is_ws_char(cur_c) || is_nl_char(cur_c)) {
+				next_char();
+			}
+
 			token.type = NEWLINE;
 		}
 
@@ -163,7 +147,28 @@ public:
 		return token;
 	}
 
+
 private:
+	void next_char() {
+		if (cur_c == "\n") {
+			++line_number;
+			column_number = 0;
+		} else {
+			column_number += cur_c.size();
+		}
+
+		str_iter += cur_c.size();
+		cur_utf8(&cur_c, str_iter, str_iter_end);
+	}
+
+	void init_token() {
+		token.type = UNKNOWN;
+		token.line = line_number;
+		token.column = column_number;
+		token.text.iter = str_iter;
+		token.text.end = str_iter;
+	}
+
 	void lex_string_literal() {
 		// Basic string literal
 		if (cur_c == "\"") {
@@ -231,18 +236,28 @@ private:
 
 
 	void lex_comment() {
-		// TODO: parse multiple comments without non-whitespace interruption together
+		bool is_doc = false;
 		if (cur_c == "#") {
 			next_char();
 
-			init_token(); // Start token just after the "#"
+			// Check if it's a doc-comment
+			if (cur_c == ":") {
+				is_doc = true;
+				next_char();
+			}
+
+			init_token(); // Start token just after the "#" or "#:"
 
 			while (!is_nl_char(cur_c) && cur_c != "") {
 				next_char();
 			}
 
 			token.text.end = str_iter;
-			token.type = COMMENT;
+			if (is_doc) {
+				token.type = DOC_COMMENT;
+			} else {
+				token.type = COMMENT;
+			}
 		}
 	}
 
