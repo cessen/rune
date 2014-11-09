@@ -7,7 +7,7 @@
 #include <vector>
 
 
-ExprAST parse_tokens(const std::vector<Token>& tokens);
+AST parse_tokens(const std::vector<Token>& tokens);
 
 
 

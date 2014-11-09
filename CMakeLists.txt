@@ -60,6 +60,7 @@ include_directories ("${PROJECT_BINARY_DIR}",
 					 "${PROJECT_SOURCE_DIR}/lexer",
 					 "${PROJECT_SOURCE_DIR}/parser",
 					 "${PROJECT_SOURCE_DIR}/tokens",
+                     "${PROJECT_SOURCE_DIR}/utils",
 					)
 
 
