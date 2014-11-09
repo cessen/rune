@@ -13,12 +13,14 @@ struct StringSlice {
 	std::string::const_iterator iter {nullptr}; // Iterator to the beginning of the string slice
 	std::string::const_iterator end {nullptr}; // Iterator to the end of the string slice
 
+
 	std::string to_string() const {
 		if (iter != end)
 			return std::string(iter, end);
 		else
 			return std::string("");
 	}
+
 
 	bool operator==(const StringSlice &other) const {
 		const auto length = std::distance(iter, end);
@@ -33,6 +35,12 @@ struct StringSlice {
 
 		return true;
 	}
+
+
+	bool operator!=(const StringSlice &other) const {
+		return !(*this == other);
+	}
+
 
 	bool operator==(const std::string &other) const {
 		const auto length = std::distance(iter, end);
@@ -49,6 +57,12 @@ struct StringSlice {
 		return true;
 	}
 
+
+	bool operator!=(const std::string &other) const {
+		return !(*this == other);
+	}
+
+
 	bool operator==(const char* const str) const {
 		const auto length = std::distance(iter, end);
 
@@ -62,6 +76,11 @@ struct StringSlice {
 			return false;
 
 		return true;
+	}
+
+
+	bool operator!=(const char* const str) const {
+		return !(*this == str);
 	}
 };
 

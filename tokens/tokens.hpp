@@ -42,7 +42,7 @@ enum TokenType {
     BACKTICK,
 
     // Keywords
-    K_FN,
+    K_FUNC,
     K_STRUCT,
     K_LET,
     K_RETURN

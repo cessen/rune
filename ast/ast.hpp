@@ -10,6 +10,7 @@ struct ASTNode;
 // An AST root
 class AST
 {
+public:
 	std::vector<std::unique_ptr<ASTNode>> roots;
 };
 

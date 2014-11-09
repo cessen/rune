@@ -290,7 +290,7 @@ private:
 void check_for_keyword(Token& token)
 {
 	if (token.text == "fn") {
-		token.type = K_FN;
+		token.type = K_FUNC;
 	} else if (token.text == "struct") {
 		token.type = K_STRUCT;
 	} else if (token.text == "let") {
