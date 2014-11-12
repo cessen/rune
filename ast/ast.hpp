@@ -5,27 +5,30 @@
 #include <vector>
 #include "string_slice.hpp"
 
-struct ASTNode;
+struct NamespaceNode;
 
 // An AST root
 class AST
 {
 public:
-	std::vector<std::unique_ptr<ASTNode>> roots;
+	std::vector<std::unique_ptr<NamespaceNode>> root;
 };
 
+
+
+
+////////////////////////////////////////////////////////////////
+// Basic building blocks and base classes
+////////////////////////////////////////////////////////////////
+
 /**
- * Base class for nodes in the AST.
+ * Base class for nodes in the AST.  Basically just exists to ensure
+ * virtual destructor.
  */
 struct ASTNode {
 	virtual ~ASTNode() {}
 };
 
-/**
- * Declaration node base class.
- */
-struct DeclNode: ASTNode {
-};
 
 /**
  * Expression node base class.
@@ -34,31 +37,104 @@ struct ExprNode: ASTNode {
 };
 
 
-
-
-struct TypeExpr: ExprNode {
+/**
+ * Type expression node base class.
+ */
+struct TypeExprNode: ASTNode {
 };
 
 
+/**
+ * Declaration node base class.
+ */
+struct DeclNode: ExprNode {
+};
 
 
-struct ExprSequence: ExprNode {
+/**
+ * Namespace node.
+ */
+struct NamespaceNode: ASTNode {
+	std::vector<std::unique_ptr<NamespaceNode>> namespaces;
+	std::vector<std::unique_ptr<DeclNode>> declarations;
+};
+
+
+/**
+ * Scope node.
+ */
+struct ScopeNode: ExprNode {
 	std::vector<std::unique_ptr<ExprNode>> expressions;
 };
 
-struct ScopeGroupExpr: ExprNode {
-	std::unique_ptr<ASTNode> expression;
+
+/**
+ * Literal node base class.
+ */
+struct LiteralNode: ExprNode {
 };
 
 
 
 
-struct FuncDefNode: DeclNode {
+////////////////////////////////////////////////////////////////
+// Helper classes
+////////////////////////////////////////////////////////////////
+
+struct NameTypePair {
 	StringSlice name;
-	std::vector<StringSlice> parameter_names;
-	std::vector<TypeExpr> parameter_types;
-	TypeExpr return_type;
+	std::unique_ptr<TypeExprNode> type;
 };
+
+
+
+
+////////////////////////////////////////////////////////////////
+// Declarations
+////////////////////////////////////////////////////////////////
+
+struct VariableDeclNode: DeclNode {
+	StringSlice name;
+	std::unique_ptr<TypeExprNode> type;
+	std::unique_ptr<ExprNode> initializer;
+};
+
+struct FuncDeclNode: DeclNode {
+	StringSlice name;
+	std::vector<NameTypePair> parameters;
+	std::unique_ptr<TypeExprNode> return_type;
+	std::unique_ptr<ScopeNode> body;
+};
+
+struct StructDeclNode: DeclNode {
+	StringSlice name;
+	std::vector<NameTypePair> fields;
+};
+
+struct EnumDeclNode: DeclNode {
+	StringSlice name;
+	std::vector<NameTypePair> variants;
+};
+
+
+////////////////////////////////////////////////////////////////
+// Literals
+////////////////////////////////////////////////////////////////
+
+struct IntegerLiteralNode: LiteralNode {
+	StringSlice text;
+};
+
+struct FloatLiteralNode: LiteralNode {
+	StringSlice text;
+};
+
+
+
+
+////////////////////////////////////////////////////////////////
+// Expressions
+////////////////////////////////////////////////////////////////
 
 struct FuncCallNode: ExprNode {
 	StringSlice name;

@@ -52,7 +52,7 @@ public:
 			switch (token_iter->type) {
 					// Function declaration
 				case K_FUNC: {
-					auto subtree = func_definition();
+					auto subtree = parse_func_definition();
 					// TODO: ast.roots.push_back(subtree);
 					break;
 				}
@@ -73,14 +73,14 @@ done:
 	}
 
 
-	FuncDefNode func_definition() {
-		FuncDefNode node;
+	std::unique_ptr<FuncDeclNode> parse_func_definition() {
+		auto node = std::unique_ptr<FuncDeclNode>(new FuncDeclNode);
 
 		// Function name
 		++token_iter;
 		skip_comments_and_newlines();
 		if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
-			node.name = token_iter->text;
+			node->name = token_iter->text;
 		} else {
 			throw ParseError {*token_iter};
 		}
@@ -96,8 +96,13 @@ done:
 			// Parameter name
 			++token_iter;
 			skip_comments_and_newlines();
+			StringSlice name;
 			if (token_iter->type == IDENTIFIER)
-				node.parameter_names.push_back(token_iter->text);
+				name = token_iter->text;
+			else if (token_iter->type == RSQUARE)
+				break;
+			else
+				throw ParseError {*token_iter};
 
 			// Colon
 			++token_iter;
@@ -110,7 +115,7 @@ done:
 			++token_iter;
 			skip_comments_and_newlines();
 			if (token_iter->type == IDENTIFIER)
-				node.parameter_types.push_back(TypeExpr {});
+				node->parameters.push_back(NameTypePair {name, std::unique_ptr<TypeExprNode>(new TypeExprNode())});
 			else
 				throw ParseError {*token_iter};
 
@@ -136,14 +141,36 @@ done:
 		++token_iter;
 		skip_comments_and_newlines();
 		if (token_iter->type == IDENTIFIER)
-			node.return_type = TypeExpr {};
+			node->return_type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
 		else
 			throw ParseError {*token_iter};
 
 		// Function body
 		// TODO
+		++token_iter;
+		skip_comments_and_newlines();
+		if (token_iter->type == LPAREN) {
+			node->body = parse_scope_group();
+		}
 
-		std::cout << "\tFunction definition: " << node.name << std::endl;
+		std::cout << "\tFunction definition: " << node->name << std::endl;
+
+		return node;
+	}
+
+	std::unique_ptr<ScopeNode> parse_scope_group() {
+		auto node = std::unique_ptr<ScopeNode>(new ScopeNode());
+
+		if (token_iter->type != LPAREN)
+			throw ParseError {*token_iter};
+
+		token_iter++;
+		skip_comments_and_newlines();
+
+		// TODO: actually parse something!
+
+		if (token_iter->type != RPAREN)
+			throw ParseError {*token_iter};
 
 		return node;
 	}
