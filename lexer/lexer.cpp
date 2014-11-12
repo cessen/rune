@@ -31,6 +31,8 @@ public:
 	 * Always leaves the iterator on the last unconsumed character.
 	 */
 	Token lex_token() {
+start_over:
+
 		// Get past any whitespace
 		while (is_ws_char(cur_c)) {
 			next_char();
@@ -123,9 +125,16 @@ public:
 		else if (is_nl_char(cur_c)) {
 			// Consume all subsequent whitespace and newlines,
 			// so that multiple newlines in a row end up as a single
-			// newline token.
-			while (is_ws_char(cur_c) || is_nl_char(cur_c)) {
+			// newline token.  Also escape newlines with a trailing backslash
+			while (is_nl_char(cur_c)) {
 				next_char();
+				while (is_ws_char(cur_c))
+					next_char();
+
+				if (cur_c == "\\") {
+					next_char();
+					goto start_over;
+				}
 			}
 
 			token.type = NEWLINE;

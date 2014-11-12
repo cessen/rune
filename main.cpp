@@ -32,15 +32,14 @@ int main(int argc, char** argv)
 
 	std::cout << "Lexing..." << std::endl;
 	auto tokens = lex_string(contents);
-
-	std::cout << "Parsing..." << std::endl;
-	auto ast = parse_tokens(tokens);
-
 	if (argc > 2) {
 		for (auto& t: tokens) {
 			std::cout << "[L" << t.line + 1 << ", C" << t.column << ", " << t.type << "]:\t" << " " << t.text << std::endl;
 		}
 	}
+
+	std::cout << "Parsing..." << std::endl;
+	auto ast = parse_tokens(tokens);
 
 	return 0;
 }

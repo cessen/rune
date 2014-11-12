@@ -85,7 +85,7 @@ done:
 			throw ParseError {*token_iter};
 		}
 
-		// Open bracker
+		// Open bracket
 		++token_iter;
 		skip_comments_and_newlines();
 		if (token_iter->type != LSQUARE)
@@ -114,7 +114,7 @@ done:
 			else
 				throw ParseError {*token_iter};
 
-			// Should see either a comma or closing square bracket
+			// Either a comma or closing square bracket
 			++token_iter;
 			skip_comments_and_newlines();
 			if (token_iter->type == COMMA)
