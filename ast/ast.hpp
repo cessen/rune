@@ -5,13 +5,23 @@
 #include <vector>
 #include "string_slice.hpp"
 
+// We use std::unique_ptr's a lot in this code, so make it shorter
+template <typename T>
+using uptr = std::unique_ptr<T>;
+
+// Same with std::vector's of std::unique_ptr's
+template <typename T>
+using uptr_vec = std::vector<std::unique_ptr<T>>;
+
+
+
 struct NamespaceNode;
 
 // An AST root
 class AST
 {
 public:
-	std::vector<std::unique_ptr<NamespaceNode>> root;
+	uptr_vec<NamespaceNode> root;
 };
 
 
@@ -31,16 +41,17 @@ struct ASTNode {
 
 
 /**
- * Expression node base class.
+ * Type expression node base class.
  */
-struct ExprNode: ASTNode {
+struct TypeExprNode: ASTNode {
 };
 
 
 /**
- * Type expression node base class.
+ * Expression node base class.
  */
-struct TypeExprNode: ASTNode {
+struct ExprNode: ASTNode {
+	uptr<TypeExprNode> eval_type;  // Type that the expression evaluates to
 };
 
 
@@ -55,8 +66,8 @@ struct DeclNode: ExprNode {
  * Namespace node.
  */
 struct NamespaceNode: ASTNode {
-	std::vector<std::unique_ptr<NamespaceNode>> namespaces;
-	std::vector<std::unique_ptr<DeclNode>> declarations;
+	uptr_vec<NamespaceNode> namespaces;
+	uptr_vec<DeclNode> declarations;
 };
 
 
@@ -64,7 +75,7 @@ struct NamespaceNode: ASTNode {
  * Scope node.
  */
 struct ScopeNode: ExprNode {
-	std::vector<std::unique_ptr<ExprNode>> expressions;
+	uptr_vec<ExprNode> expressions;
 };
 
 
@@ -83,7 +94,7 @@ struct LiteralNode: ExprNode {
 
 struct NameTypePair {
 	StringSlice name;
-	std::unique_ptr<TypeExprNode> type;
+	uptr<TypeExprNode> type;
 };
 
 
@@ -95,15 +106,15 @@ struct NameTypePair {
 
 struct VariableDeclNode: DeclNode {
 	StringSlice name;
-	std::unique_ptr<TypeExprNode> type;
-	std::unique_ptr<ExprNode> initializer;
+	uptr<TypeExprNode> type;
+	uptr<ExprNode> initializer;
 };
 
 struct FuncDeclNode: DeclNode {
 	StringSlice name;
 	std::vector<NameTypePair> parameters;
-	std::unique_ptr<TypeExprNode> return_type;
-	std::unique_ptr<ScopeNode> body;
+	uptr<TypeExprNode> return_type;
+	uptr<ScopeNode> body;
 };
 
 struct StructDeclNode: DeclNode {
@@ -138,7 +149,7 @@ struct FloatLiteralNode: LiteralNode {
 
 struct FuncCallNode: ExprNode {
 	StringSlice name;
-	std::vector<std::unique_ptr<ExprNode>> parameters;
+	uptr_vec<ExprNode> parameters;
 };
 
 

@@ -24,6 +24,8 @@ class Parser
 	std::vector<Token>::const_iterator end;
 	std::vector<Token>::const_iterator token_iter;
 
+	// TODO: scope stack
+
 	AST ast;
 
 public:
@@ -43,9 +45,25 @@ public:
 	}
 
 
+	// All the parsing methods below should adhere to the following
+	// conventions:
+	//
+	// - When they are called, they assume token_iter is on the first
+	//   character for them to consume.
+	//
+	// - When they return, they leave token_iter on the first character that
+	//   they don't consume (as opposed to the last character they do).  In
+	//   particular they should not consume trailing whitespace unless it
+	//   is actually syntactically meaningful to them.
+	//
+	// - When calling another parsing method, the call should be done in a
+	//   state consistent with the above, and handle things afterwards
+	//   assuming a state consistent with the above.
+
+
 	AST parse() {
 		// Iterate over the tokens
-		for (; token_iter < end; ++token_iter) {
+		while (token_iter < end) {
 			skip_comments_and_newlines();
 
 			// Call the appropriate parsing function for the token type
@@ -73,6 +91,84 @@ done:
 	}
 
 
+	// Expression
+	std::unique_ptr<ExprNode> parse_expression() {
+		switch (token_iter->type) {
+				// Scope
+			case LPAREN: {
+				return parse_scope();
+			}
+
+			// Return statement
+			case K_RETURN: {
+				// TODO
+				throw ParseError {*token_iter};
+			}
+
+			// Declaration
+			case K_FUNC:
+			case K_STRUCT:
+			case K_LET: {
+				return parse_declaration();
+			}
+
+			// Literal
+			case INTEGER_LIT:
+			case FLOAT_LIT:
+			case STRING_LIT:
+			case RAW_STRING_LIT: {
+				// TODO
+				throw ParseError {*token_iter};
+			}
+
+			// Identifier or operator, means this is a more
+			// complex case.  Handle after switch statement.
+			case IDENTIFIER:
+			case OPERATOR: {
+				break;
+			}
+
+			default: {
+				throw ParseError {*token_iter};
+			}
+		}
+
+		// We know we're on an identifier or operator name, which means this
+		// is either going to be a function call or just the value behind the
+		// identifier or operator name.
+		auto first = token_iter;
+		++token_iter;
+		skip_comments();
+
+		// Just a singleton?
+		if (token_iter->type == NEWLINE || token_iter->type == COMMA) {
+			// TODO
+			throw ParseError {*token_iter};
+		}
+
+		// Standard-style function call
+		if (token_iter->type == LSQUARE) {
+			token_iter = first;
+			return parse_standard_func_call();
+		}
+	}
+
+
+	// Declaration
+	std::unique_ptr<DeclNode> parse_declaration() {
+		switch (token_iter->type) {
+			case K_FUNC: {
+				return parse_func_definition();
+			}
+
+			default: {
+				throw ParseError {*token_iter};
+			}
+		}
+	}
+
+
+	// Function definition
 	std::unique_ptr<FuncDeclNode> parse_func_definition() {
 		auto node = std::unique_ptr<FuncDeclNode>(new FuncDeclNode);
 
@@ -150,7 +246,7 @@ done:
 		++token_iter;
 		skip_comments_and_newlines();
 		if (token_iter->type == LPAREN) {
-			node->body = parse_scope_group();
+			node->body = parse_scope();
 		}
 
 		std::cout << "\tFunction definition: " << node->name << std::endl;
@@ -158,19 +254,64 @@ done:
 		return node;
 	}
 
-	std::unique_ptr<ScopeNode> parse_scope_group() {
+
+	// Standard function call syntax
+	std::unique_ptr<FuncCallNode> parse_standard_func_call() {
+		auto node = std::unique_ptr<FuncCallNode>(new FuncCallNode());
+
+		// Get function name
+		if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
+			node->name = token_iter->text;
+		} else {
+			throw ParseError {*token_iter};
+		}
+
+		// [
+		++token_iter;
+		skip_comments();
+		if (token_iter->type != LSQUARE)
+			throw ParseError {*token_iter};
+		++token_iter;
+
+		while (true) {
+			skip_comments_and_newlines();
+
+			// ]?
+			if (token_iter->type == RSQUARE) {
+				++token_iter;
+				break;
+			}
+
+			// TODO: parse arguments
+			++token_iter;
+		}
+
+		return node;
+	}
+
+
+	// Scope
+	std::unique_ptr<ScopeNode> parse_scope() {
 		auto node = std::unique_ptr<ScopeNode>(new ScopeNode());
 
+		// Open scope
 		if (token_iter->type != LPAREN)
 			throw ParseError {*token_iter};
+		++token_iter;
 
-		token_iter++;
-		skip_comments_and_newlines();
+		while (true) {
+			skip_comments_and_newlines();
 
-		// TODO: actually parse something!
-
-		if (token_iter->type != RPAREN)
-			throw ParseError {*token_iter};
+			// Close scope?
+			if (token_iter->type == RPAREN) {
+				++token_iter;
+				break;
+			}
+			// Should be an expression
+			else {
+				node->expressions.push_back(parse_expression());
+			}
+		}
 
 		return node;
 	}
