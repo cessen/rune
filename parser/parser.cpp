@@ -90,6 +90,8 @@ public:
 
 
 	AST parse() {
+		ast.root = std::unique_ptr<NamespaceNode>(new NamespaceNode());
+
 		// Iterate over the tokens
 		while (token_iter < end) {
 			skip_comments_and_newlines();
@@ -98,8 +100,7 @@ public:
 			switch (token_iter->type) {
 					// Function declaration
 				case K_FUNC: {
-					auto subtree = parse_func_definition();
-					// TODO: ast.roots.push_back(subtree);
+					ast.root->declarations.push_back(parse_func_definition());
 					break;
 				}
 
@@ -636,6 +637,8 @@ AST parse_tokens(const std::vector<Token>& tokens)
 		std::cout << "Parse Error: " << "[L" << e.token.line + 1 << ", C" << e.token.column << ", " << e.token.type << "]:\t" << " " << e.token.text << std::endl;
 		throw e;
 	}
+
+	ast.print();
 
 	return ast;
 }

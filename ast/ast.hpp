@@ -1,6 +1,7 @@
 #ifndef AST_HPP
 #define AST_HPP
 
+#include <iostream>
 #include <memory>
 #include <vector>
 #include "string_slice.hpp"
@@ -15,17 +16,12 @@ using uptr_vec = std::vector<std::unique_ptr<T>>;
 
 
 
-struct NamespaceNode;
-
-// An AST root
-class AST
+static void print_indent(int indent)
 {
-public:
-	uptr_vec<NamespaceNode> root;
-};
-
-
-
+	for (int i = 0; i < indent; ++i) {
+		std::cout << "\t";
+	}
+}
 
 ////////////////////////////////////////////////////////////////
 // Basic building blocks and base classes
@@ -36,6 +32,7 @@ public:
  * virtual destructor.
  */
 struct ASTNode {
+	virtual void print(int indent) {}
 	virtual ~ASTNode() {}
 };
 
@@ -44,6 +41,10 @@ struct ASTNode {
  * Type expression node base class.
  */
 struct TypeExprNode: ASTNode {
+	virtual void print(int indent) {
+		print_indent(indent);
+		std::cout << "EMPTY_TypeExpr";
+	}
 };
 
 
@@ -52,6 +53,11 @@ struct TypeExprNode: ASTNode {
  */
 struct ExprNode: ASTNode {
 	uptr<TypeExprNode> eval_type;  // Type that the expression evaluates to
+
+	virtual void print(int indent) {
+		print_indent(indent);
+		std::cout << "EMPTY_Expr";
+	}
 };
 
 
@@ -59,6 +65,10 @@ struct ExprNode: ASTNode {
  * Declaration node base class.
  */
 struct DeclNode: ExprNode {
+	virtual void print(int indent) {
+		print_indent(indent);
+		std::cout << "EMPTY_Decl";
+	}
 };
 
 
@@ -66,8 +76,24 @@ struct DeclNode: ExprNode {
  * Namespace node.
  */
 struct NamespaceNode: ASTNode {
+	StringSlice name;
 	uptr_vec<NamespaceNode> namespaces;
 	uptr_vec<DeclNode> declarations;
+
+	virtual void print(int indent) {
+		print_indent(indent);
+		std::cout << "namespace " << name << " {" << std::endl;
+		for (const auto &n: namespaces) {
+			n->print(indent+1);
+			std::cout << std::endl;
+		}
+		for (const auto &d: declarations) {
+			d->print(indent+1);
+			std::cout << std::endl;
+		}
+
+		std::cout << "}" << std::endl;
+	}
 };
 
 
@@ -76,6 +102,17 @@ struct NamespaceNode: ASTNode {
  */
 struct ScopeNode: ExprNode {
 	uptr_vec<ExprNode> expressions;
+
+	virtual void print(int indent) {
+		print_indent(indent);
+		std::cout << "(\n";
+		for (auto &e: expressions) {
+			e->print(indent+1);
+			std::cout << std::endl;
+		}
+		print_indent(indent);
+		std::cout << ")";
+	}
 };
 
 
@@ -83,6 +120,10 @@ struct ScopeNode: ExprNode {
  * Literal node base class.
  */
 struct LiteralNode: ExprNode {
+	virtual void print(int indent) {
+		print_indent(indent);
+		std::cout << "EMPTY_Literal";
+	}
 };
 
 
@@ -95,6 +136,12 @@ struct LiteralNode: ExprNode {
 struct NameTypePair {
 	StringSlice name;
 	uptr<TypeExprNode> type;
+
+	void print(int indent) {
+		print_indent(indent);
+		std::cout << name << ":\n";
+		type->print(indent+1);
+	}
 };
 
 
@@ -115,6 +162,32 @@ struct FuncDeclNode: DeclNode {
 	std::vector<NameTypePair> parameters;
 	uptr<TypeExprNode> return_type;
 	uptr<ScopeNode> body;
+
+	virtual void print(int indent) {
+		// Name
+		print_indent(indent);
+		std::cout << "FUNC " << name << std::endl;
+
+		// Parameters
+		print_indent(indent+1);
+		std::cout << "PARAMETERS" << std::endl;
+		for (auto& p: parameters) {
+			p.print(indent+2);
+			std::cout << std::endl;
+		}
+
+		// Return type
+		print_indent(indent+1);
+		std::cout << "RETURN_TYPE" << std::endl;
+		return_type->print(indent+2);
+		std::cout << std::endl;
+
+		// Body
+		print_indent(indent+1);
+		std::cout << "BODY" << std::endl;
+		body->print(indent+1);
+		std::cout << std::endl;
+	}
 };
 
 struct StructDeclNode: DeclNode {
@@ -158,9 +231,33 @@ struct FuncNode: ExprNode {
 struct FuncCallNode: ExprNode {
 	StringSlice name;
 	uptr_vec<ExprNode> parameters;
+
+	virtual void print(int indent) {
+		// Name
+		print_indent(indent);
+		std::cout << "CALL " << name;
+
+		// Parameters
+		for (auto& p: parameters) {
+			std::cout << std::endl;
+			p->print(indent+1);
+		}
+	}
 };
 
 
+////////////////////////////////////////////////////////////////
+// An AST root
+////////////////////////////////////////////////////////////////
+class AST
+{
+public:
+	uptr<NamespaceNode> root;
+
+	void print() {
+		root->print(0);
+	}
+};
 
 
 #endif // AST_HPP
