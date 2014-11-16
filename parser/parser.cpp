@@ -121,6 +121,10 @@ done:
 
 private:
 
+	////////////////////
+	// Helper Methods
+	////////////////////
+
 	void skip_comments() {
 		while (token_iter->type == COMMENT || token_iter->type == DOC_COMMENT)
 			++token_iter;
@@ -158,7 +162,22 @@ private:
 		}
 	}
 
+	// Returns whether the token is a delimeter token, i.e. a token
+	// that ends an expression.
+	bool token_is_delimeter(Token t) {
+		return (
+		           t.type == NEWLINE ||
+		           t.type == COMMA ||
+		           t.type == RPAREN ||
+		           t.type == RSQUARE ||
+		           t.type == RCURLY
+		       );
+	}
 
+
+	////////////////////////////////////////////////
+	// Parser Methods
+	//
 	// All the parsing methods below should adhere to the following
 	// conventions:
 	//
@@ -173,9 +192,7 @@ private:
 	// - When calling another parsing method, the call should be done in a
 	//   state consistent with the above, and handle things afterwards
 	//   assuming a state consistent with the above.
-
-
-
+	////////////////////////////////////////////////
 
 
 	// Expression
@@ -217,19 +234,7 @@ private:
 					throw ParseError {*token_iter};
 				}
 
-				// If next token is a terminator, it's a singleton
-				if (token_iter[1].type == NEWLINE || token_iter[1].type == COMMA) {
-					// TODO
-					throw ParseError {*token_iter};
-				}
-				// If next token is a [, it's a function call
-				else if (token_iter[1].type == LSQUARE) {
-					return parse_standard_func_call();
-				}
-				// Otherwise it's a compound expression
-				else {
-					return parse_compound_expression();
-				}
+				return parse_compound_expression();
 			}
 
 			default: {
@@ -245,14 +250,29 @@ private:
 	std::unique_ptr<ExprNode> parse_compound_expression() {
 		std::unique_ptr<ExprNode> lhs;
 
+		// LHS
+		// If next token is a delimeter, we have a singleton
+		if (token_is_delimeter(token_iter[1])) {
+			// TODO
+			throw ParseError {*token_iter};
+		}
+		// If next token is [ then this starts with a standard function
+		// call
+		else if (token_iter[1].type == LSQUARE) {
+			lhs = parse_standard_func_call();
+		}
 		// If it's a unary operator, parse to the first
 		// non-operator
-		if (token_is_function(*token_iter)) {
+		else if (token_is_function(*token_iter)) {
 			// Unary operator, consume as many unary operators as possible
 			lhs = parse_unary_func_call();
 		}
 
-		if (token_iter->type == NEWLINE || token_iter->type == COMMA) {
+
+		// RHS
+		// Now that we have an lhs, let's see if there are any binary ops
+		// following it.
+		if (token_is_delimeter(*token_iter)) {
 			return lhs;
 		} else if (token_is_function(*token_iter)) {
 			// Parse binary operator
@@ -551,7 +571,7 @@ private:
 		}
 
 		while (true) {
-			if (token_iter->type == NEWLINE || token_iter->type == COMMA || token_iter->type == RPAREN) {
+			if (token_is_delimeter(*token_iter)) {
 				break;
 			} else if (token_is_function(*token_iter)) {
 				if (get_op_prec(token_iter->text) > my_prec) {
