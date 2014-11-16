@@ -2,9 +2,13 @@
 
 #include "ast.hpp"
 #include "tokens.hpp"
+#include "string_slice.hpp"
+#include "scope_stack.hpp"
 
 #include <iostream>
 #include <exception>
+#include <string>
+#include <unordered_map>
 
 
 class ParseError: std::exception
@@ -24,41 +28,58 @@ class Parser
 	std::vector<Token>::const_iterator end;
 	std::vector<Token>::const_iterator token_iter;
 
-	// TODO: scope stack
+	ScopeStack scope_stack;
+
+	std::unordered_map<StringSlice, int> op_prec; // Binary operator precidence map
+	std::string binary_op_list; // Storage for operator strings, referenced by op_prec
 
 	AST ast;
 
+	void add_op_prec(const char* op, int prec) {
+		auto itr = binary_op_list.cend();
+		binary_op_list.append(op);
+		op_prec.emplace(StringSlice(itr, binary_op_list.cend()), prec);
+	}
+
 public:
-	Parser(const std::vector<Token>& tokens): begin {tokens.cbegin()}, end {tokens.cend()}, token_iter {tokens.cbegin()}
-	{}
+	Parser(const std::vector<Token>& tokens): begin {tokens.cbegin()}, end {tokens.cend()}, token_iter {tokens.cbegin()} {
+		// Build operator precidence map
+		// Note that this is only for function-like binary operators.
+		// Non-function-like operators such as . have their own rules.
+		// Unary operators always bind more tightly than binary operators.
+		binary_op_list.reserve(256); // Make sure we have enough space to avoid iterator invalidation
+		binary_op_list.append(" "); // To get it started, so that add_op_prec()'s logic works
 
+		add_op_prec("*", 100); // Multiply
+		add_op_prec("/", 100); // Divide
+		add_op_prec("//", 100); // Modulus/remainder
 
-	void skip_comments() {
-		while (token_iter->type == COMMENT || token_iter->type == DOC_COMMENT)
-			++token_iter;
+		add_op_prec("+", 90); // Add
+		add_op_prec("-", 90); // Subtract
+
+		add_op_prec("<<", 80); // Bit shift left
+		add_op_prec(">>", 80); // Bit shift right
+
+		add_op_prec("<", 70); // Less than
+		add_op_prec(">", 70); // Greater than
+		add_op_prec("<=", 70); // Less than or equal
+		add_op_prec(">=", 70); // Greater than or equal
+
+		add_op_prec("==", 60); // Equal
+		add_op_prec("!=", 60); // Not equal
+
+		add_op_prec("&", 50); // Bit-wise and
+
+		add_op_prec("^", 40); // Bit-wise xor
+
+		add_op_prec("|", 30); // Bit-wise or
+
+		add_op_prec("and", 20); // Logical and
+
+		add_op_prec("or", 10); // Logical or
+
+		add_op_prec("=", -10); // Assignment
 	}
-
-
-	void skip_comments_and_newlines() {
-		while (token_iter->type == COMMENT || token_iter->type == DOC_COMMENT || token_iter->type == NEWLINE)
-			++token_iter;
-	}
-
-
-	// All the parsing methods below should adhere to the following
-	// conventions:
-	//
-	// - When they are called, they assume token_iter is on the first
-	//   character for them to consume.
-	//
-	// - When they return, they leave token_iter on the first character that
-	//   they don't consume (as opposed to the last character they do).  In
-	//   particular they should not consume trailing whitespace unless it
-	//   is actually syntactically meaningful to them.
-	//
-	// - When calling another parsing method, the call should be done in a
-	//   state consistent with the above, and handle things afterwards
-	//   assuming a state consistent with the above.
 
 
 	AST parse() {
@@ -89,6 +110,53 @@ done:
 
 		return std::move(ast);
 	}
+
+
+private:
+
+	void skip_comments() {
+		while (token_iter->type == COMMENT || token_iter->type == DOC_COMMENT)
+			++token_iter;
+	}
+
+
+	void skip_comments_and_newlines() {
+		while (token_iter->type == COMMENT || token_iter->type == DOC_COMMENT || token_iter->type == NEWLINE)
+			++token_iter;
+	}
+
+	// Returns whether the token is a function identifier or operator
+	bool token_is_function(Token t) {
+		if (t.type == OPERATOR) {
+			return true;
+		} else if (t.type == IDENTIFIER &&
+		           scope_stack.is_symbol_in_scope(t.text) &&
+		           scope_stack.symbol_type(t.text) == SymbolType::FUNCTION
+		          ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+
+	// All the parsing methods below should adhere to the following
+	// conventions:
+	//
+	// - When they are called, they assume token_iter is on the first
+	//   character for them to consume.
+	//
+	// - When they return, they leave token_iter on the first character that
+	//   they don't consume (as opposed to the last character they do).  In
+	//   particular they should not consume trailing whitespace unless it
+	//   is actually syntactically meaningful to them.
+	//
+	// - When calling another parsing method, the call should be done in a
+	//   state consistent with the above, and handle things afterwards
+	//   assuming a state consistent with the above.
+
+
+
 
 
 	// Expression
@@ -122,35 +190,52 @@ done:
 			}
 
 			// Identifier or operator, means this is a more
-			// complex case.  Handle after switch statement.
+			// complex case.
 			case IDENTIFIER:
 			case OPERATOR: {
-				break;
+				// Check if symbol is in scope
+				if (!scope_stack.is_symbol_in_scope(token_iter->text)) {
+					throw ParseError {*token_iter};
+				}
+
+				// If next token is a terminator, it's a singleton
+				if (token_iter[1].type == NEWLINE || token_iter[1].type == COMMA) {
+					// TODO
+					throw ParseError {*token_iter};
+				}
+				// If next token is a [, it's a function call
+				else if (token_iter[1].type == LSQUARE) {
+					return parse_standard_func_call();
+				}
+				// If next token is an identifier or operator, it's a compound expression
+				else if (token_iter[1].type == IDENTIFIER || token_iter[1].type == OPERATOR) {
+					parse_compound_expression();
+				}
+				// Otherwise, error
+				else {
+					throw ParseError {*token_iter};
+				}
 			}
 
 			default: {
 				throw ParseError {*token_iter};
 			}
 		}
+	}
 
-		// We know we're on an identifier or operator name, which means this
-		// is either going to be a function call or just the value behind the
-		// identifier or operator name.
-		auto first = token_iter;
-		++token_iter;
-		skip_comments();
 
-		// Just a singleton?
-		if (token_iter->type == NEWLINE || token_iter->type == COMMA) {
-			// TODO
-			throw ParseError {*token_iter};
+	// Compound expression
+	std::unique_ptr<ExprNode> parse_compound_expression() {
+		// If it's a unary operator, parse to the first
+		// non-operator
+		if (token_is_function(*token_iter)) {
+			// Unary operator, consume to point of
+
 		}
 
-		// Standard-style function call
-		if (token_iter->type == LSQUARE) {
-			token_iter = first;
-			return parse_standard_func_call();
-		}
+		// Parse binary operator
+
+		// ???
 	}
 
 
@@ -241,6 +326,9 @@ done:
 		else
 			throw ParseError {*token_iter};
 
+		// Push name onto scope stack
+		scope_stack.push_symbol(node->name, SymbolType::FUNCTION);
+
 		// Function body
 		// TODO
 		++token_iter;
@@ -299,6 +387,9 @@ done:
 			throw ParseError {*token_iter};
 		++token_iter;
 
+		// Push this scope
+		scope_stack.push_scope();
+
 		while (true) {
 			skip_comments_and_newlines();
 
@@ -312,6 +403,9 @@ done:
 				node->expressions.push_back(parse_expression());
 			}
 		}
+
+		// Pop this scope
+		scope_stack.pop_scope();
 
 		return node;
 	}

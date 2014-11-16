@@ -13,6 +13,11 @@ struct StringSlice {
 	std::string::const_iterator iter {nullptr}; // Iterator to the beginning of the string slice
 	std::string::const_iterator end {nullptr}; // Iterator to the end of the string slice
 
+	StringSlice()
+	{}
+
+	StringSlice(std::string::const_iterator begin, std::string::const_iterator end): iter {begin}, end {end}
+	{}
 
 	std::string to_string() const {
 		if (iter != end)
@@ -96,6 +101,23 @@ static std::ostream& operator<< (std::ostream& out, const StringSlice& strslc)
 		out << strslc.iter[i];
 
 	return out;
+}
+
+
+// Allows string slice to be hashed, for use in e.g. unordered_map
+namespace std
+{
+template<>
+struct hash<StringSlice> {
+	typedef StringSlice argument_type;
+	typedef std::size_t result_type;
+
+	result_type operator()(argument_type const& s) const {
+		// TODO: something more efficient that avoids allocating
+		// a std::string.
+		return std::hash<std::string>()(s.to_string());
+	}
+};
 }
 
 
