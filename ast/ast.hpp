@@ -155,6 +155,24 @@ struct VariableDeclNode: DeclNode {
 	StringSlice name;
 	uptr<TypeExprNode> type;
 	uptr<ExprNode> initializer;
+
+	virtual void print(int indent) {
+		// Name
+		print_indent(indent);
+		std::cout << "VARIABLE " << name << std::endl;
+
+		// Return type
+		print_indent(indent+1);
+		std::cout << "TYPE" << std::endl;
+		type->print(indent+2);
+		std::cout << std::endl;
+
+		// Initializer
+		print_indent(indent+1);
+		std::cout << "INIT" << std::endl;
+		initializer->print(indent+2);
+		std::cout << std::endl;
+	}
 };
 
 struct FuncDeclNode: DeclNode {
@@ -222,6 +240,15 @@ struct FloatLiteralNode: LiteralNode {
 
 struct VariableNode: ExprNode {
 	StringSlice name;
+
+	VariableNode(StringSlice name): name {name}
+	{}
+
+	virtual void print(int indent) {
+		// Name
+		print_indent(indent);
+		std::cout << name;
+	}
 };
 
 struct FuncNode: ExprNode {

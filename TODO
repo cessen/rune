@@ -12,7 +12,7 @@ Parser:
 	//- Write a recursive descent parser for expression sequences
 	//- Write a recursive descent parser for expressions that handles bracketed function calls
 	//- Write a recursive descent parser that handles prefix and infix function calls
-	- Write a recursive descent parser that handles variable declaration
+	//- Write a recursive descent parser that handles variable declaration
 	- Clean up code to reduce redundant code.  Could be waaaay DRYer.
 	
 Code generation:

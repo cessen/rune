@@ -99,8 +99,10 @@ public:
 			// Call the appropriate parsing function for the token type
 			switch (token_iter->type) {
 					// Function declaration
-				case K_FUNC: {
-					ast.root->declarations.push_back(parse_func_definition());
+				case K_FUNC:
+				case K_STRUCT:
+				case K_LET: {
+					ast.root->declarations.push_back(parse_declaration());
 					break;
 				}
 
@@ -270,8 +272,9 @@ private:
 		}
 		// If it's a variable
 		else if (token_is_variable(*token_iter)) {
-			// TODO
-			throw ParseError {*token_iter};
+			// TODO: do this properly
+			lhs = std::unique_ptr<VariableNode>(new VariableNode {token_iter->text});
+			++token_iter;
 		}
 		// Who knows what it is...
 		else {
@@ -298,6 +301,10 @@ private:
 	// Declaration
 	std::unique_ptr<DeclNode> parse_declaration() {
 		switch (token_iter->type) {
+			case K_LET: {
+				return parse_variable_decl();
+			}
+
 			case K_FUNC: {
 				return parse_func_definition();
 			}
@@ -306,6 +313,67 @@ private:
 				throw ParseError {*token_iter};
 			}
 		}
+	}
+
+
+	std::unique_ptr<VariableDeclNode> parse_variable_decl() {
+		auto node = std::unique_ptr<VariableDeclNode>(new VariableDeclNode);
+
+		// Variable name
+		++token_iter;
+		skip_comments_and_newlines();
+		if (token_iter->type == IDENTIFIER) {
+			node->name = token_iter->text;
+		} else {
+			throw ParseError {*token_iter};
+		}
+
+		if (!scope_stack.push_symbol(node->name, SymbolType::VARIABLE)) {
+			throw ParseError {*token_iter};
+		}
+
+		++token_iter;
+		skip_comments();
+
+		// Optional ":"
+		if (token_iter->type == COLON) {
+			++token_iter;
+			skip_comments_and_newlines();
+
+			if (token_iter->type == IDENTIFIER) {
+				// TODO
+				++token_iter;
+				node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+			} else {
+				throw ParseError {*token_iter};
+			}
+		} else {
+			// Unknown type
+			// TODO
+			node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+		}
+
+		skip_comments();
+
+		// Optional "="
+		if (token_iter->type == OPERATOR && token_iter->text == "=") {
+			++token_iter;
+			skip_comments();
+
+			node->initializer = parse_expression();
+		} else {
+			// No initializer
+			// TODO
+			node->initializer = std::unique_ptr<ExprNode>(new ExprNode());
+		}
+
+		skip_comments();
+
+		if (!token_is_delimeter(*token_iter)) {
+			throw ParseError {*token_iter};
+		}
+
+		return node;
 	}
 
 
@@ -319,6 +387,11 @@ private:
 		if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
 			node->name = token_iter->text;
 		} else {
+			throw ParseError {*token_iter};
+		}
+
+		// Push name onto scope stack
+		if (!scope_stack.push_symbol(node->name, SymbolType::FUNCTION)) {
 			throw ParseError {*token_iter};
 		}
 
@@ -382,9 +455,6 @@ private:
 		else
 			throw ParseError {*token_iter};
 
-		// Push name onto scope stack
-		scope_stack.push_symbol(node->name, SymbolType::FUNCTION);
-
 		// Function body
 		// TODO
 		++token_iter;
@@ -393,7 +463,6 @@ private:
 			node->body = parse_scope();
 		}
 
-		std::cout << "\tFunction definition: " << node->name << std::endl;
 
 		return node;
 	}
@@ -496,8 +565,9 @@ private:
 				}
 				// If token is a variable, but not being called as a function
 				else if (token_is_variable(*token_iter)) {
-					// TODO
-					throw ParseError {*token_iter};
+					// TODO: do this properly
+					node->parameters.push_back(std::unique_ptr<VariableNode>(new VariableNode {token_iter->text}));
+					++token_iter;
 				}
 				// Otherwise, error
 				else {
@@ -567,8 +637,9 @@ private:
 				}
 				// If token is a variable, but not being called as a function
 				else if (token_is_variable(*token_iter)) {
-					// TODO
-					throw ParseError {*token_iter};
+					// TODO: do this properly
+					node->parameters.push_back(std::unique_ptr<VariableNode>(new VariableNode {token_iter->text}));
+					++token_iter;
 				}
 				// Otherwise, error
 				else {
@@ -646,12 +717,12 @@ AST parse_tokens(const std::vector<Token>& tokens)
 	Parser parser(tokens);
 	AST ast;
 
-	try {
-		ast = parser.parse();
-	} catch (ParseError e) {
-		std::cout << "Parse Error: " << "[L" << e.token.line + 1 << ", C" << e.token.column << ", " << e.token.type << "]:\t" << " " << e.token.text << std::endl;
-		throw e;
-	}
+// 	try {
+	ast = parser.parse();
+// 	} catch (ParseError e) {
+// 		std::cout << "Parse Error: " << "[L" << e.token.line + 1 << ", C" << e.token.column << ", " << e.token.type << "]:\t" << " " << e.token.text << std::endl;
+// 		throw e;
+// 	}
 
 	ast.print();
 
