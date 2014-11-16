@@ -139,6 +139,18 @@ private:
 		}
 	}
 
+	// Returns whether the token is a variable identifier
+	bool token_is_variable(Token t) {
+		if (t.type == IDENTIFIER &&
+		        scope_stack.is_symbol_in_scope(t.text) &&
+		        scope_stack.symbol_type(t.text) == SymbolType::VARIABLE
+		   ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 
 	// All the parsing methods below should adhere to the following
 	// conventions:
@@ -361,18 +373,110 @@ private:
 			throw ParseError {*token_iter};
 		++token_iter;
 
+		skip_comments_and_newlines();
+
+		// ]?
+		if (token_iter->type == RSQUARE) {
+			++token_iter;
+			return node;
+		}
+
 		while (true) {
+			node->parameters.push_back(parse_expression());
+
 			skip_comments_and_newlines();
 
-			// ]?
-			if (token_iter->type == RSQUARE) {
+			// , or ]
+			if (token_iter->type == COMMA) {
+				++token_iter;
+				continue;
+			} else if (token_iter->type == RSQUARE) {
 				++token_iter;
 				break;
 			}
 
-			// TODO: parse arguments
 			++token_iter;
+			skip_comments_and_newlines();
 		}
+
+		return node;
+	}
+
+
+	// Unary function call syntax
+	std::unique_ptr<FuncCallNode> parse_unary_func_call() {
+		auto node = std::unique_ptr<FuncCallNode>(new FuncCallNode());
+
+		// Get function name
+		if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
+			node->name = token_iter->text;
+		} else {
+			throw ParseError {*token_iter};
+		}
+		++token_iter;
+
+		// This token should be the argument
+		switch (token_iter->type) {
+				// Scope
+			case LPAREN: {
+				node->parameters.push_back(parse_scope());
+				break;
+			}
+
+			// Literal
+			case INTEGER_LIT:
+			case FLOAT_LIT:
+			case STRING_LIT:
+			case RAW_STRING_LIT: {
+				// TODO
+				throw ParseError {*token_iter};
+			}
+
+			// Identifier or operator
+			case IDENTIFIER:
+			case OPERATOR: {
+				// Check if symbol is in scope
+				if (!scope_stack.is_symbol_in_scope(token_iter->text)) {
+					throw ParseError {*token_iter};
+				}
+
+				// If next token is a [, it's a function call
+				if (token_iter[1].type == LSQUARE) {
+					node->parameters.push_back(parse_standard_func_call());
+					break;
+				}
+				// If token is a function but not being called with normal
+				// syntax, it has to be unary as well.
+				else if (token_is_function(*token_iter)) {
+					node->parameters.push_back(parse_unary_func_call());
+					break;
+				}
+				// If token is a variable, but not being called as a function
+				else if (token_is_variable(*token_iter)) {
+					// TODO
+					throw ParseError {*token_iter};
+					break;
+				}
+				// Otherwise, error
+				else {
+					throw ParseError {*token_iter};
+				}
+			}
+
+			default: {
+				throw ParseError {*token_iter};
+			}
+		}
+
+		return node;
+	}
+
+
+	// Binary infix function call syntax
+	std::unique_ptr<FuncCallNode> parse_binary_func_call(/* Stuff goes here...*/) {
+		auto node = std::unique_ptr<FuncCallNode>(new FuncCallNode());
+
+		// TODO
 
 		return node;
 	}
