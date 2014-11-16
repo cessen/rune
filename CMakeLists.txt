@@ -13,7 +13,7 @@ set (NLANG_VERSION_MINOR 0)
 set (NLANG_VERSION_PATCH 0)
 
 # Build type (Release, Debug)
-set (CMAKE_BUILD_TYPE Release)
+set (CMAKE_BUILD_TYPE Debug)
 
 # configure a header file to pass some of the CMake settings
 # to the source code

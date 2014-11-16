@@ -147,10 +147,20 @@ struct FloatLiteralNode: LiteralNode {
 // Expressions
 ////////////////////////////////////////////////////////////////
 
+struct VariableNode: ExprNode {
+	StringSlice name;
+};
+
+struct FuncNode: ExprNode {
+	StringSlice name;
+};
+
 struct FuncCallNode: ExprNode {
 	StringSlice name;
 	uptr_vec<ExprNode> parameters;
 };
+
+
 
 
 #endif // AST_HPP

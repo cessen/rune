@@ -41,6 +41,13 @@ class Parser
 		op_prec.emplace(StringSlice(itr, binary_op_list.cend()), prec);
 	}
 
+	int get_op_prec(StringSlice symbol) {
+		if (op_prec.count(symbol) > 0)
+			return op_prec[symbol];
+		else
+			return 0;
+	}
+
 public:
 	Parser(const std::vector<Token>& tokens): begin {tokens.cbegin()}, end {tokens.cend()}, token_iter {tokens.cbegin()} {
 		// Build operator precidence map
@@ -221,7 +228,7 @@ private:
 				}
 				// If next token is an identifier or operator, it's a compound expression
 				else if (token_iter[1].type == IDENTIFIER || token_iter[1].type == OPERATOR) {
-					parse_compound_expression();
+					return parse_compound_expression();
 				}
 				// Otherwise, error
 				else {
@@ -237,17 +244,28 @@ private:
 
 
 	// Compound expression
+	// Parses the largest number of tokens that result in a single valid
+	// expression.
 	std::unique_ptr<ExprNode> parse_compound_expression() {
+		std::unique_ptr<ExprNode> lhs;
+
 		// If it's a unary operator, parse to the first
 		// non-operator
 		if (token_is_function(*token_iter)) {
-			// Unary operator, consume to point of
-
+			// Unary operator, consume as many unary operators as possible
+			lhs = parse_unary_func_call();
 		}
 
-		// Parse binary operator
+		if (token_iter->type == NEWLINE || token_iter->type == COMMA) {
+			return lhs;
+		} else if (token_is_function(*token_iter)) {
+			// Parse binary operator
+			lhs = parse_binary_func_call(std::move(lhs));
+		} else {
+			throw ParseError {*token_iter};
+		}
 
-		// ???
+		return lhs;
 	}
 
 
@@ -382,6 +400,8 @@ private:
 		}
 
 		while (true) {
+			skip_comments_and_newlines();
+
 			node->parameters.push_back(parse_expression());
 
 			skip_comments_and_newlines();
@@ -396,7 +416,6 @@ private:
 			}
 
 			++token_iter;
-			skip_comments_and_newlines();
 		}
 
 		return node;
@@ -443,24 +462,22 @@ private:
 				// If next token is a [, it's a function call
 				if (token_iter[1].type == LSQUARE) {
 					node->parameters.push_back(parse_standard_func_call());
-					break;
 				}
 				// If token is a function but not being called with normal
 				// syntax, it has to be unary as well.
 				else if (token_is_function(*token_iter)) {
 					node->parameters.push_back(parse_unary_func_call());
-					break;
 				}
 				// If token is a variable, but not being called as a function
 				else if (token_is_variable(*token_iter)) {
 					// TODO
 					throw ParseError {*token_iter};
-					break;
 				}
 				// Otherwise, error
 				else {
 					throw ParseError {*token_iter};
 				}
+				break;
 			}
 
 			default: {
@@ -473,10 +490,86 @@ private:
 
 
 	// Binary infix function call syntax
-	std::unique_ptr<FuncCallNode> parse_binary_func_call(/* Stuff goes here...*/) {
+	std::unique_ptr<FuncCallNode> parse_binary_func_call(std::unique_ptr<ExprNode> lhs) {
 		auto node = std::unique_ptr<FuncCallNode>(new FuncCallNode());
+		std::unique_ptr<ExprNode> rhs;
 
-		// TODO
+		if (!token_is_function(*token_iter)) {
+			throw ParseError {*token_iter};
+		}
+
+		// Op info
+		node->name = token_iter->text;
+		const int my_prec = get_op_prec(token_iter->text);
+
+		// Get rhs argument
+		++token_iter;
+		switch (token_iter->type) {
+				// Scope
+			case LPAREN: {
+				rhs = parse_scope();
+				break;
+			}
+
+			// Literal
+			case INTEGER_LIT:
+			case FLOAT_LIT:
+			case STRING_LIT:
+			case RAW_STRING_LIT: {
+				// TODO
+				throw ParseError {*token_iter};
+			}
+
+			// Identifier or operator
+			case IDENTIFIER:
+			case OPERATOR: {
+				// Check if symbol is in scope
+				if (!scope_stack.is_symbol_in_scope(token_iter->text)) {
+					throw ParseError {*token_iter};
+				}
+
+				// If next token is a [, it's a function call
+				if (token_iter[1].type == LSQUARE) {
+					rhs = parse_standard_func_call();
+				}
+				// If token is a function but not being called with normal
+				// syntax, it has to be unary.
+				else if (token_is_function(*token_iter)) {
+					rhs = parse_unary_func_call();
+				}
+				// If token is a variable, but not being called as a function
+				else if (token_is_variable(*token_iter)) {
+					// TODO
+					throw ParseError {*token_iter};
+				}
+				// Otherwise, error
+				else {
+					throw ParseError {*token_iter};
+				}
+				break;
+			}
+
+			default: {
+				throw ParseError {*token_iter};
+			}
+		}
+
+		while (true) {
+			if (token_iter->type == NEWLINE || token_iter->type == COMMA) {
+				break;
+			} else if (token_is_function(*token_iter)) {
+				if (get_op_prec(token_iter->text) > my_prec) {
+					rhs = parse_binary_func_call(std::move(rhs));
+				} else {
+					break;
+				}
+			} else {
+				throw ParseError {*token_iter};
+			}
+		}
+
+		node->parameters.push_back(std::move(lhs));
+		node->parameters.push_back(std::move(rhs));
 
 		return node;
 	}
