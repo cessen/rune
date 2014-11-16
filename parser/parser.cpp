@@ -268,6 +268,15 @@ private:
 			// Unary operator, consume as many unary operators as possible
 			lhs = parse_unary_func_call();
 		}
+		// If it's a variable
+		else if (token_is_variable(*token_iter)) {
+			// TODO
+			throw ParseError {*token_iter};
+		}
+		// Who knows what it is...
+		else {
+			throw ParseError {*token_iter};
+		}
 
 
 		// RHS
@@ -277,7 +286,7 @@ private:
 			return lhs;
 		} else if (token_is_function(*token_iter)) {
 			// Parse binary operator
-			lhs = parse_binary_func_call(std::move(lhs));
+			lhs = parse_binary_func_call(std::move(lhs), -1000000);
 		} else {
 			throw ParseError {*token_iter};
 		}
@@ -507,7 +516,7 @@ private:
 
 
 	// Binary infix function call syntax
-	std::unique_ptr<FuncCallNode> parse_binary_func_call(std::unique_ptr<ExprNode> lhs) {
+	std::unique_ptr<ExprNode> parse_binary_func_call(std::unique_ptr<ExprNode> lhs, int lhs_prec) {
 		auto node = std::unique_ptr<FuncCallNode>(new FuncCallNode());
 		std::unique_ptr<ExprNode> rhs;
 
@@ -518,6 +527,8 @@ private:
 		// Op info
 		node->name = token_iter->text;
 		const int my_prec = get_op_prec(token_iter->text);
+
+		auto pre_rhs = token_iter;
 
 		// Get rhs argument
 		++token_iter;
@@ -573,22 +584,26 @@ private:
 
 		while (true) {
 			if (token_is_delimeter(*token_iter)) {
+				node->parameters.push_back(std::move(lhs));
+				node->parameters.push_back(std::move(rhs));
 				break;
+			} else if (lhs_prec >= my_prec) {
+				token_iter = pre_rhs;
+				return lhs;
 			} else if (token_is_function(*token_iter)) {
 				if (get_op_prec(token_iter->text) > my_prec) {
-					rhs = parse_binary_func_call(std::move(rhs));
+					rhs = parse_binary_func_call(std::move(rhs), my_prec);
 				} else {
-					break;
+					node->parameters.push_back(std::move(lhs));
+					node->parameters.push_back(std::move(rhs));
+					return parse_binary_func_call(std::move(node), lhs_prec);
 				}
 			} else {
 				throw ParseError {*token_iter};
 			}
 		}
 
-		node->parameters.push_back(std::move(lhs));
-		node->parameters.push_back(std::move(rhs));
-
-		return node;
+		return std::unique_ptr<ExprNode>(std::move(node));;
 	}
 
 
