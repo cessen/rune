@@ -226,13 +226,9 @@ private:
 				else if (token_iter[1].type == LSQUARE) {
 					return parse_standard_func_call();
 				}
-				// If next token is an identifier or operator, it's a compound expression
-				else if (token_iter[1].type == IDENTIFIER || token_iter[1].type == OPERATOR) {
-					return parse_compound_expression();
-				}
-				// Otherwise, error
+				// Otherwise it's a compound expression
 				else {
-					throw ParseError {*token_iter};
+					return parse_compound_expression();
 				}
 			}
 
@@ -555,7 +551,7 @@ private:
 		}
 
 		while (true) {
-			if (token_iter->type == NEWLINE || token_iter->type == COMMA) {
+			if (token_iter->type == NEWLINE || token_iter->type == COMMA || token_iter->type == RPAREN) {
 				break;
 			} else if (token_is_function(*token_iter)) {
 				if (get_op_prec(token_iter->text) > my_prec) {
