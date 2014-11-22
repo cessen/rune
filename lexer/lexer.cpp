@@ -18,6 +18,8 @@ class Lexer
 	std::string cur_c = "";
 	Token token;
 
+	std::vector<bool> generic_stack = {false};
+
 
 public:
 	Lexer(const std::string::const_iterator& str_iter, const std::string::const_iterator& str_iter_end): str_iter {str_iter}, str_iter_end {str_iter_end} {
@@ -70,6 +72,14 @@ start_over:
 			check_for_keyword(token);
 		}
 
+		else if (in_generic() && cur_c[0] == '>') {
+			pop_generic(true);
+			next_char();
+			token.text.end = str_iter;
+
+			token.type = RGENERIC;
+		}
+
 		// If it's an operator
 		else if (is_op_char(cur_c)) {
 			do {
@@ -85,39 +95,62 @@ start_over:
 			switch (cur_c[0]) {
 				case '(':
 					token.type = LPAREN;
+					push_generic(false);
+					next_char();
 					break;
 				case ')':
 					token.type = RPAREN;
+					pop_generic(false);
+					next_char();
 					break;
 				case '[':
 					token.type = LSQUARE;
+					push_generic(false);
+					next_char();
 					break;
 				case ']':
 					token.type = RSQUARE;
+					pop_generic(false);
+					next_char();
 					break;
 				case '{':
 					token.type = LCURLY;
+					push_generic(false);
+					next_char();
 					break;
 				case '}':
 					token.type = RCURLY;
+					pop_generic(false);
+					next_char();
 					break;
 				case ',':
 					token.type = COMMA;
+					next_char();
 					break;
 				case '.':
 					token.type = PERIOD;
+					next_char();
 					break;
 				case ':':
 					token.type = COLON;
+					next_char();
 					break;
-				case '`':
-					token.type = BACKTICK;
+				case '`': {
+					next_char();
+					if (cur_c[0] == '<') {
+						token.type = LGENERIC;
+						push_generic(true);
+						next_char();
+					} else {
+						token.type = BACKTICK;
+					}
 					break;
+				}
 				default:
 					token.type = RESERVED;
+					next_char();
 					break;
 			}
-			next_char();
 			token.text.end = str_iter;
 		}
 
@@ -177,6 +210,25 @@ private:
 		token.text.iter = str_iter;
 		token.text.end = str_iter;
 	}
+
+
+	// Some utility functions for lexing generic delimeters properly
+	void push_generic(bool state) {
+		generic_stack.push_back(state);
+	}
+
+	void pop_generic(bool state) {
+		if (generic_stack.size() > 0 && generic_stack.back() == state)
+			generic_stack.pop_back();
+	}
+
+	bool in_generic() {
+		if (generic_stack.size() > 0)
+			return generic_stack.back();
+		else
+			return false;
+	}
+
 
 	void lex_string_literal() {
 		// Basic string literal

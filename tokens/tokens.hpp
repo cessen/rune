@@ -36,15 +36,19 @@ enum TokenType {
     RSQUARE,
     LCURLY,
     RCURLY,
+    LGENERIC,
+    RGENERIC,
     COMMA,
     PERIOD,
     COLON,
     BACKTICK,
 
     // Keywords
+    K_CONST,
+    K_LET,
+    K_VAR,
     K_FUNC,
     K_STRUCT,
-    K_LET,
     K_RETURN
 
 };
