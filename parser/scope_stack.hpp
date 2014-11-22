@@ -12,9 +12,11 @@
 namespace SymbolType
 {
 enum SymbolType {
+    CONST_FUNCTION,
+    CONST_VARIABLE,
     FUNCTION,
+    VARIABLE,
     TYPE,
-    VARIABLE
 };
 }
 

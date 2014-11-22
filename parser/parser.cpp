@@ -8,22 +8,14 @@
 #include <iostream>
 #include <exception>
 #include <string>
+#include <sstream>
 #include <unordered_map>
-
-
-class ParseError: std::exception
-{
-public:
-	Token token;
-	ParseError(Token token): token {token} {}
-	virtual const char* what() const noexcept {
-		return "Parse error.";
-	}
-};
 
 
 class Parser
 {
+	std::string file_path;
+
 	std::vector<Token>::const_iterator begin;
 	std::vector<Token>::const_iterator end;
 	std::vector<Token>::const_iterator token_iter;
@@ -32,6 +24,8 @@ class Parser
 
 	std::unordered_map<StringSlice, int> op_prec; // Binary operator precidence map
 	std::string binary_op_list; // Storage for operator strings, referenced by op_prec
+
+	std::string error_message;
 
 	AST ast;
 
@@ -48,8 +42,17 @@ class Parser
 			return 0;
 	}
 
+	// Log/throw parse error
+	void parsing_error(Token t, std::string msg = "") {
+		std::ostringstream fmt;
+		fmt << "\x1b[31;1mParse error:\033[0m \033[1m" << file_path << ":" << t.line + 1 << ":" << t.column << ":\033[0m\n    " << msg << "\n";
+		error_message = fmt.str();
+		std::cout << error_message;
+		throw ParseError {t};
+	}
+
 public:
-	Parser(const std::vector<Token>& tokens): begin {tokens.cbegin()}, end {tokens.cend()}, token_iter {tokens.cbegin()} {
+	Parser(std::string file_path, const std::vector<Token>& tokens): file_path {file_path}, begin {tokens.cbegin()}, end {tokens.cend()}, token_iter {tokens.cbegin()} {
 		// Build operator precidence map
 		// Note that this is only for function-like binary operators.
 		// Non-function-like operators such as . have their own rules.
@@ -98,7 +101,7 @@ public:
 
 			// Call the appropriate parsing function for the token type
 			switch (token_iter->type) {
-					// Function declaration
+					// Declarations
 				case K_FN:
 				case K_STRUCT:
 				case K_LET: {
@@ -106,12 +109,19 @@ public:
 					break;
 				}
 
+				case K_NAMESPACE:
+					// TODO
+					parsing_error(*token_iter, "TODO: namespaces not yet implemented.");
+					break;
+
 				case LEX_EOF:
 					goto done;
 
 					// Something else, not allowed at this level
-				default:
-					throw ParseError {*token_iter};
+				default: {
+					// Error
+					parsing_error(*token_iter, "Only declarations are allowed at the namespace level");
+				}
 			}
 
 		}
@@ -145,7 +155,7 @@ private:
 			return true;
 		} else if (t.type == IDENTIFIER &&
 		           scope_stack.is_symbol_in_scope(t.text) &&
-		           scope_stack.symbol_type(t.text) == SymbolType::FUNCTION
+		           scope_stack.symbol_type(t.text) == SymbolType::CONST_FUNCTION
 		          ) {
 			return true;
 		} else {
@@ -209,7 +219,7 @@ private:
 			// Return statement
 			case K_RETURN: {
 				// TODO
-				throw ParseError {*token_iter};
+				parsing_error(*token_iter, "TODO: Return statements haven't been implemented yet.");
 			}
 
 			// Declaration
@@ -225,7 +235,7 @@ private:
 			case STRING_LIT:
 			case RAW_STRING_LIT: {
 				// TODO
-				throw ParseError {*token_iter};
+				parsing_error(*token_iter, "TODO: Parsing literals hasn't been implemented yet.");
 			}
 
 			// Identifier or operator, means this is a more
@@ -234,14 +244,21 @@ private:
 			case OPERATOR: {
 				// Check if symbol is in scope
 				if (!scope_stack.is_symbol_in_scope(token_iter->text)) {
-					throw ParseError {*token_iter};
+					// Error
+					std::ostringstream msg;
+					msg << "No symbol in scope named '" << token_iter->text << "'.";
+					parsing_error(*token_iter, msg.str());
 				}
 
 				return parse_compound_expression();
 			}
 
 			default: {
-				throw ParseError {*token_iter};
+				// Error
+				std::ostringstream msg;
+				msg << "Unknown expression '" << token_iter->text << "'.";
+				parsing_error(*token_iter, msg.str());
+				throw 0; // Silence warnings about not returning, parsing_error throws anyway
 			}
 		}
 	}
@@ -257,7 +274,9 @@ private:
 		// If next token is a delimeter, we have a singleton
 		if (token_is_delimeter(token_iter[1])) {
 			// TODO
-			throw ParseError {*token_iter};
+			std::ostringstream msg;
+			msg << "TODO: singleton expressions not yet supported. ('" << token_iter->text << "')";
+			parsing_error(*token_iter, msg.str());
 		}
 		// If next token is [ then this starts with a standard function
 		// call
@@ -278,7 +297,10 @@ private:
 		}
 		// Who knows what it is...
 		else {
-			throw ParseError {*token_iter};
+			// Error
+			std::ostringstream msg;
+			msg << "parse_compound_expression() OMGYOUSHOULDNEVERSEETHIS '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
 		}
 
 
@@ -291,7 +313,10 @@ private:
 			// Parse binary operator
 			lhs = parse_binary_func_call(std::move(lhs), -1000000);
 		} else {
-			throw ParseError {*token_iter};
+			// Error
+			std::ostringstream msg;
+			msg << "No binary operator in scope named '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
 		}
 
 		return lhs;
@@ -310,7 +335,11 @@ private:
 			}
 
 			default: {
-				throw ParseError {*token_iter};
+				// TODO
+				std::ostringstream msg;
+				msg << "TODO: not all declarations are implemented yet. ('" << token_iter->text << "')";
+				parsing_error(*token_iter, msg.str());;
+				throw 0; // Silence warnings about not returning, parsing_error throws anyway
 			}
 		}
 	}
@@ -325,11 +354,17 @@ private:
 		if (token_iter->type == IDENTIFIER) {
 			node->name = token_iter->text;
 		} else {
-			throw ParseError {*token_iter};
+			// Error
+			std::ostringstream msg;
+			msg << "Invalid variable name: '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
 		}
 
 		if (!scope_stack.push_symbol(node->name, SymbolType::VARIABLE)) {
-			throw ParseError {*token_iter};
+			// Error
+			std::ostringstream msg;
+			msg << "Attempted to declare variable '" << token_iter->text << "', but something with the same name is already in scope.";
+			parsing_error(*token_iter, msg.str());
 		}
 
 		++token_iter;
@@ -345,7 +380,10 @@ private:
 				++token_iter;
 				node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
 			} else {
-				throw ParseError {*token_iter};
+				// Error
+				std::ostringstream msg;
+				msg << "Invalid type name: '" << token_iter->text << "'.";
+				parsing_error(*token_iter, msg.str());
 			}
 		} else {
 			// Unknown type
@@ -370,7 +408,10 @@ private:
 		skip_comments();
 
 		if (!token_is_delimeter(*token_iter)) {
-			throw ParseError {*token_iter};
+			// Error
+			std::ostringstream msg;
+			msg << "Invalid continuation of expression: '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
 		}
 
 		return node;
@@ -387,19 +428,29 @@ private:
 		if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
 			node->name = token_iter->text;
 		} else {
-			throw ParseError {*token_iter};
+			// Error
+			std::ostringstream msg;
+			msg << "Invalid function name: '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
 		}
 
 		// Push name onto scope stack
-		if (!scope_stack.push_symbol(node->name, SymbolType::FUNCTION)) {
-			throw ParseError {*token_iter};
+		if (!scope_stack.push_symbol(node->name, SymbolType::CONST_FUNCTION)) {
+			// Error
+			std::ostringstream msg;
+			msg << "Attempted to declare function '" << token_iter->text << "', but something with the same name is already in scope.";
+			parsing_error(*token_iter, msg.str());
 		}
 
 		// Open bracket
 		++token_iter;
 		skip_comments_and_newlines();
-		if (token_iter->type != LSQUARE)
-			throw ParseError {*token_iter};
+		if (token_iter->type != LSQUARE) {
+			// Error
+			std::ostringstream msg;
+			msg << "Attempted to declare a function without a parameter list.";
+			parsing_error(*token_iter, msg.str());
+		}
 
 		// Parameters
 		while (true) {
@@ -411,14 +462,22 @@ private:
 				name = token_iter->text;
 			else if (token_iter->type == RSQUARE)
 				break;
-			else
-				throw ParseError {*token_iter};
+			else {
+				// Error
+				std::ostringstream msg;
+				msg << "Something fishy with the end of this function declaration's parameter list.";
+				parsing_error(*token_iter, msg.str());
+			}
 
 			// Colon
 			++token_iter;
 			skip_comments_and_newlines();
-			if (token_iter->type != COLON)
-				throw ParseError {*token_iter};
+			if (token_iter->type != COLON) {
+				// Error
+				std::ostringstream msg;
+				msg << "Function parameter lacks a type.";
+				parsing_error(*token_iter, msg.str());
+			}
 
 			// Parameter type
 			// TODO: types aren't just names, need to evaluate full type expression here.
@@ -426,8 +485,12 @@ private:
 			skip_comments_and_newlines();
 			if (token_iter->type == IDENTIFIER)
 				node->parameters.push_back(NameTypePair {name, std::unique_ptr<TypeExprNode>(new TypeExprNode())});
-			else
-				throw ParseError {*token_iter};
+			else {
+				// Error
+				std::ostringstream msg;
+				msg << "Invalid type name for function parameter: '" << token_iter->text << "'.";
+				parsing_error(*token_iter, msg.str());
+			}
 
 			// Either a comma or closing square bracket
 			++token_iter;
@@ -436,31 +499,47 @@ private:
 				continue;
 			else if (token_iter->type == RSQUARE)
 				break;
-			else
-				throw ParseError {*token_iter};
+			else {
+				// Error
+				std::ostringstream msg;
+				msg << "Something fishy with the end of this function declaration's parameter list.";
+				parsing_error(*token_iter, msg.str());
+			}
 		}
 
-		// ->
+		// -> (optional return type)
 		++token_iter;
 		skip_comments_and_newlines();
-		if (token_iter->type != OPERATOR || token_iter->text != "->")
-			throw ParseError {*token_iter};
-
-		// Return type
-		// TODO: types aren't just names, need to evaluate full type expression here.
-		++token_iter;
-		skip_comments_and_newlines();
-		if (token_iter->type == IDENTIFIER)
+		if (token_iter->type == OPERATOR && token_iter->text == "->") {
+			// Return type
+			// TODO: types aren't just names, need to evaluate full type expression here.
+			++token_iter;
+			skip_comments_and_newlines();
+			if (token_iter->type == IDENTIFIER)
+				node->return_type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+			else {
+				// Error
+				std::ostringstream msg;
+				msg << "Invalid type name for return type: '" << token_iter->text << "'.";
+				parsing_error(*token_iter, msg.str());
+			}
+		} else {
+			// TODO: empty return type
 			node->return_type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
-		else
-			throw ParseError {*token_iter};
+		}
+
+		// TODO: push parameter names onto scope stack
 
 		// Function body
-		// TODO
 		++token_iter;
 		skip_comments_and_newlines();
 		if (token_iter->type == LPAREN) {
 			node->body = parse_scope();
+		} else {
+			// Error
+			std::ostringstream msg;
+			msg << "Function definition with no body.";
+			parsing_error(*token_iter, msg.str());
 		}
 
 
@@ -476,14 +555,21 @@ private:
 		if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
 			node->name = token_iter->text;
 		} else {
-			throw ParseError {*token_iter};
+			// Error
+			std::ostringstream msg;
+			msg << "Invalid name for standard function call: '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
 		}
 
 		// [
 		++token_iter;
 		skip_comments();
-		if (token_iter->type != LSQUARE)
-			throw ParseError {*token_iter};
+		if (token_iter->type != LSQUARE) {
+			// Error
+			std::ostringstream msg;
+			msg << "Function call without '[]'.";
+			parsing_error(*token_iter, msg.str());
+		}
 		++token_iter;
 
 		skip_comments_and_newlines();
@@ -525,7 +611,10 @@ private:
 		if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
 			node->name = token_iter->text;
 		} else {
-			throw ParseError {*token_iter};
+			// Error
+			std::ostringstream msg;
+			msg << "Invalid name for unary function call: '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
 		}
 		++token_iter;
 
@@ -543,7 +632,9 @@ private:
 			case STRING_LIT:
 			case RAW_STRING_LIT: {
 				// TODO
-				throw ParseError {*token_iter};
+				std::ostringstream msg;
+				msg << "TODO: literals are not parsed yet. ('" << token_iter->text << "').";
+				parsing_error(*token_iter, msg.str());
 			}
 
 			// Identifier or operator
@@ -551,7 +642,10 @@ private:
 			case OPERATOR: {
 				// Check if symbol is in scope
 				if (!scope_stack.is_symbol_in_scope(token_iter->text)) {
-					throw ParseError {*token_iter};
+					// Error
+					std::ostringstream msg;
+					msg << "Unary function call argument not in scope: '" << token_iter->text << "'.";
+					parsing_error(*token_iter, msg.str());
 				}
 
 				// If next token is a [, it's a function call
@@ -571,13 +665,19 @@ private:
 				}
 				// Otherwise, error
 				else {
-					throw ParseError {*token_iter};
+					// Error
+					std::ostringstream msg;
+					msg << "Invalid argument to unary function call: '" << token_iter->text << "'.";
+					parsing_error(*token_iter, msg.str());
 				}
 				break;
 			}
 
 			default: {
-				throw ParseError {*token_iter};
+				// Error
+				std::ostringstream msg;
+				msg << "Invalid argument to unary function call: '" << token_iter->text << "'.";
+				parsing_error(*token_iter, msg.str());
 			}
 		}
 
@@ -591,7 +691,10 @@ private:
 		std::unique_ptr<ExprNode> rhs;
 
 		if (!token_is_function(*token_iter)) {
-			throw ParseError {*token_iter};
+			// Error
+			std::ostringstream msg;
+			msg << "Invalid name for binary function call: '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
 		}
 
 		// Op info
@@ -615,7 +718,9 @@ private:
 			case STRING_LIT:
 			case RAW_STRING_LIT: {
 				// TODO
-				throw ParseError {*token_iter};
+				std::ostringstream msg;
+				msg << "TODO: literals are not parsed yet. ('" << token_iter->text << "').";
+				parsing_error(*token_iter, msg.str());
 			}
 
 			// Identifier or operator
@@ -623,7 +728,10 @@ private:
 			case OPERATOR: {
 				// Check if symbol is in scope
 				if (!scope_stack.is_symbol_in_scope(token_iter->text)) {
-					throw ParseError {*token_iter};
+					// Error
+					std::ostringstream msg;
+					msg << "Binary function call argument not in scope: '" << token_iter->text << "'.";
+					parsing_error(*token_iter, msg.str());
 				}
 
 				// If next token is a [, it's a function call
@@ -643,13 +751,19 @@ private:
 				}
 				// Otherwise, error
 				else {
-					throw ParseError {*token_iter};
+					// Error
+					std::ostringstream msg;
+					msg << "Invalid argument to binary function call: '" << token_iter->text << "'.";
+					parsing_error(*token_iter, msg.str());
 				}
 				break;
 			}
 
 			default: {
-				throw ParseError {*token_iter};
+				// Error
+				std::ostringstream msg;
+				msg << "Invalid argument to binary function call: '" << token_iter->text << "'.";
+				parsing_error(*token_iter, msg.str());
 			}
 		}
 
@@ -670,7 +784,10 @@ private:
 					return parse_binary_func_call(std::move(node), lhs_prec);
 				}
 			} else {
-				throw ParseError {*token_iter};
+				// Error
+				std::ostringstream msg;
+				msg << "GAHWHATDOESTHISMEAN??? parse_binary_func_call()";
+				parsing_error(*token_iter, msg.str());
 			}
 		}
 
@@ -683,8 +800,12 @@ private:
 		auto node = std::unique_ptr<ScopeNode>(new ScopeNode());
 
 		// Open scope
-		if (token_iter->type != LPAREN)
-			throw ParseError {*token_iter};
+		if (token_iter->type != LPAREN) {
+			// Error
+			std::ostringstream msg;
+			msg << "Opening scope with wrong character: '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
+		}
 		++token_iter;
 
 		// Push this scope
@@ -712,17 +833,12 @@ private:
 };
 
 
-AST parse_tokens(const std::vector<Token>& tokens)
+AST parse_tokens(const char* file_path, const std::vector<Token>& tokens)
 {
-	Parser parser(tokens);
+	Parser parser(file_path, tokens);
 	AST ast;
 
-// 	try {
 	ast = parser.parse();
-// 	} catch (ParseError e) {
-// 		std::cout << "Parse Error: " << "[L" << e.token.line + 1 << ", C" << e.token.column << ", " << e.token.type << "]:\t" << " " << e.token.text << std::endl;
-// 		throw e;
-// 	}
 
 	ast.print();
 
