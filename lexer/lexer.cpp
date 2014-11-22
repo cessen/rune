@@ -350,14 +350,85 @@ private:
 
 void check_for_keyword(Token& token)
 {
-	if (token.text == "fn") {
-		token.type = K_FUNC;
-	} else if (token.text == "struct") {
-		token.type = K_STRUCT;
+	// Scoping
+	if (token.text == "namespace") {
+		token.type = K_NAMESPACE;
+	} else if (token.text == "pub") {
+		token.type = K_PUB;
+	} else if (token.text == "unsafe") {
+		token.type = K_UNSAFE;
+	}
+
+	// Handle declarations
+	else if (token.text == "const") {
+		token.type = K_CONST;
 	} else if (token.text == "let") {
 		token.type = K_LET;
+	} else if (token.text == "var") {
+		token.type = K_VAR;
+	}
+
+	// Handle modifiers
+	else if (token.text == "mut") {
+		token.type = K_MUT;
+	} else if (token.text == "ref") {
+		token.type = K_REF;
+	}
+
+	// Functions
+	else if (token.text == "fn") {
+		token.type = K_FN;
+	}
+
+	// Data types
+	else if (token.text == "struct") {
+		token.type = K_STRUCT;
+	} else if (token.text == "enum") {
+		token.type = K_ENUM;
+	} else if (token.text == "union") {
+		token.type = K_UNION;
+	}
+
+	// Traits
+	else if (token.text == "trait") {
+		token.type = K_TRAIT;
+	} else if (token.text == "is") {
+		token.type = K_IS;
+	}
+
+	// Control flow
+	else if (token.text == "if") {
+		token.type = K_IF;
+	} else if (token.text == "else") {
+		token.type = K_ELSE;
+	} else if (token.text == "loop") {
+		token.type = K_LOOP;
+	} else if (token.text == "while") {
+		token.type = K_WHILE;
+	} else if (token.text == "until") {
+		token.type = K_UNTIL;
+	} else if (token.text == "for") {
+		token.type = K_FOR;
+	} else if (token.text == "in") {
+		token.type = K_IN;
+	} else if (token.text == "break") {
+		token.type = K_BREAK;
+	} else if (token.text == "continue") {
+		token.type = K_CONTINUE;
 	} else if (token.text == "return") {
 		token.type = K_RETURN;
+	}
+
+	// Type casting
+	else if (token.text == "as") {
+		token.type = K_AS;
+	}
+
+	// Misc
+	else if (token.text == "alias") {
+		token.type = K_ALIAS;
+	} else if (token.text == "type") {
+		token.type = K_TYPE;
 	}
 }
 

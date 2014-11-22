@@ -184,7 +184,7 @@ struct FuncDeclNode: DeclNode {
 	virtual void print(int indent) {
 		// Name
 		print_indent(indent);
-		std::cout << "FUNC " << name << std::endl;
+		std::cout << "FUNCTION " << name << std::endl;
 
 		// Parameters
 		print_indent(indent+1);

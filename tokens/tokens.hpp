@@ -44,13 +44,41 @@ enum TokenType {
     BACKTICK,
 
     // Keywords
+    K_NAMESPACE,
+    K_PUB,
+    K_UNSAFE,
+
     K_CONST,
     K_LET,
     K_VAR,
-    K_FUNC,
-    K_STRUCT,
-    K_RETURN
 
+    K_MUT,
+    K_REF,
+
+    K_FN,
+
+    K_STRUCT,
+    K_ENUM,
+    K_UNION,
+
+    K_TRAIT,
+    K_IS,
+
+    K_IF,
+    K_ELSE,
+    K_LOOP,
+    K_WHILE,
+    K_UNTIL,
+    K_FOR,
+    K_IN,
+    K_BREAK,
+    K_CONTINUE,
+    K_RETURN,
+
+    K_AS,
+
+    K_ALIAS,
+    K_TYPE,
 };
 
 struct Token {

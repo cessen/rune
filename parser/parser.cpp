@@ -99,7 +99,7 @@ public:
 			// Call the appropriate parsing function for the token type
 			switch (token_iter->type) {
 					// Function declaration
-				case K_FUNC:
+				case K_FN:
 				case K_STRUCT:
 				case K_LET: {
 					ast.root->declarations.push_back(parse_declaration());
@@ -213,7 +213,7 @@ private:
 			}
 
 			// Declaration
-			case K_FUNC:
+			case K_FN:
 			case K_STRUCT:
 			case K_LET: {
 				return parse_declaration();
@@ -305,7 +305,7 @@ private:
 				return parse_variable_decl();
 			}
 
-			case K_FUNC: {
+			case K_FN: {
 				return parse_func_definition();
 			}
 
