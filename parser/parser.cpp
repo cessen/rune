@@ -150,7 +150,7 @@ private:
 	}
 
 	// Returns whether the token is a function identifier or operator
-	bool token_is_function(Token t) {
+	bool token_is_const_function(Token t) {
 		if (t.type == OPERATOR) {
 			return true;
 		} else if (t.type == IDENTIFIER &&
@@ -172,6 +172,19 @@ private:
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+	bool token_in_scope(Token t) {
+		return scope_stack.is_symbol_in_scope(t.text);
+	}
+
+	// Throws an error if the given token isn't in scope
+	void assert_in_scope(Token t) {
+		if (!scope_stack.is_symbol_in_scope(t.text)) {
+			std::ostringstream msg;
+			msg << "No symbol in scope named '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
 		}
 	}
 
@@ -242,14 +255,7 @@ private:
 			// complex case.
 			case IDENTIFIER:
 			case OPERATOR: {
-				// Check if symbol is in scope
-				if (!scope_stack.is_symbol_in_scope(token_iter->text)) {
-					// Error
-					std::ostringstream msg;
-					msg << "No symbol in scope named '" << token_iter->text << "'.";
-					parsing_error(*token_iter, msg.str());
-				}
-
+				assert_in_scope(*token_iter);
 				return parse_compound_expression();
 			}
 
@@ -264,9 +270,72 @@ private:
 	}
 
 
+	// Primary expression
+	// Parses the fewest number of tokens that result in a single
+	// valid expression while keeping surrounding code valid.
+	// Note: this excludes declarations.
+	std::unique_ptr<ExprNode> parse_primary_expression() {
+		switch (token_iter->type) {
+			case LPAREN:
+				return parse_scope();
+				break;
+
+				// Literal
+			case INTEGER_LIT:
+			case FLOAT_LIT:
+			case STRING_LIT:
+			case RAW_STRING_LIT: {
+				// TODO
+				std::ostringstream msg;
+				msg << "TODO: literals are not parsed yet. ('" << token_iter->text << "').";
+				parsing_error(*token_iter, msg.str());
+				break;
+			}
+
+			case OPERATOR:
+			case IDENTIFIER: {
+				assert_in_scope(*token_iter);
+
+				// Standard function call
+				if (token_iter[1].type == LSQUARE) {
+					return parse_standard_func_call();
+				}
+				// Token is const function
+				else if (token_is_const_function(*token_iter)) {
+					if (!token_is_delimeter(token_iter[1])) {
+						return parse_unary_func_call();
+					} else {
+						// TODO
+						std::ostringstream msg;
+						msg << "TODO: can't parse const functions as values yet. ('" << token_iter->text << "')";
+						parsing_error(*token_iter, msg.str());
+					}
+				}
+				// Token is variable
+				else if (token_is_variable(*token_iter)) {
+					std::unique_ptr<ExprNode> var = std::unique_ptr<VariableNode>(new VariableNode {token_iter->text});
+					++token_iter;
+					return var;
+				}
+				break;
+			}
+
+			default:
+				break;
+		}
+
+		// Error
+		std::ostringstream msg;
+		msg << "ICE primary_expression(). ('" << token_iter->text << "')";
+		parsing_error(*token_iter, msg.str());
+		throw 0; // Silence warnings about not returning, parsing_error throws anyway
+	}
+
+
 	// Compound expression
 	// Parses the largest number of tokens that result in a single valid
-	// expression.
+	// expression while keeping surrounding code valid.
+	// Note: this excludes declarations.
 	std::unique_ptr<ExprNode> parse_compound_expression() {
 		std::unique_ptr<ExprNode> lhs;
 
@@ -278,29 +347,9 @@ private:
 			msg << "TODO: singleton expressions not yet supported. ('" << token_iter->text << "')";
 			parsing_error(*token_iter, msg.str());
 		}
-		// If next token is [ then this starts with a standard function
-		// call
-		else if (token_iter[1].type == LSQUARE) {
-			lhs = parse_standard_func_call();
-		}
-		// If it's a unary operator, parse to the first
-		// non-operator
-		else if (token_is_function(*token_iter)) {
-			// Unary operator, consume as many unary operators as possible
-			lhs = parse_unary_func_call();
-		}
-		// If it's a variable
-		else if (token_is_variable(*token_iter)) {
-			// TODO: do this properly
-			lhs = std::unique_ptr<VariableNode>(new VariableNode {token_iter->text});
-			++token_iter;
-		}
-		// Who knows what it is...
+		// Otherwise, parse the primary expression as the lhs
 		else {
-			// Error
-			std::ostringstream msg;
-			msg << "parse_compound_expression() OMGYOUSHOULDNEVERSEETHIS '" << token_iter->text << "'.";
-			parsing_error(*token_iter, msg.str());
+			lhs = parse_primary_expression();
 		}
 
 
@@ -309,7 +358,7 @@ private:
 		// following it.
 		if (token_is_delimeter(*token_iter)) {
 			return lhs;
-		} else if (token_is_function(*token_iter)) {
+		} else if (token_is_const_function(*token_iter)) {
 			// Parse binary operator
 			lhs = parse_binary_func_call(std::move(lhs), -1000000);
 		} else {
@@ -442,6 +491,8 @@ private:
 			parsing_error(*token_iter, msg.str());
 		}
 
+
+
 		// Open bracket
 		++token_iter;
 		skip_comments_and_newlines();
@@ -453,6 +504,7 @@ private:
 		}
 
 		// Parameters
+		scope_stack.push_scope(); // Begin parameters scope (ends after body)
 		while (true) {
 			// Parameter name
 			++token_iter;
@@ -483,9 +535,17 @@ private:
 			// TODO: types aren't just names, need to evaluate full type expression here.
 			++token_iter;
 			skip_comments_and_newlines();
-			if (token_iter->type == IDENTIFIER)
+			if (token_iter->type == IDENTIFIER) {
 				node->parameters.push_back(NameTypePair {name, std::unique_ptr<TypeExprNode>(new TypeExprNode())});
-			else {
+
+				// Push onto scope
+				if (!scope_stack.push_symbol(name, SymbolType::VARIABLE)) {
+					// Error
+					std::ostringstream msg;
+					msg << "Function declaration has a parameter name '" << name << "', but something with that name is already in scope.";
+					parsing_error(*token_iter, msg.str());
+				}
+			} else {
 				// Error
 				std::ostringstream msg;
 				msg << "Invalid type name for function parameter: '" << token_iter->text << "'.";
@@ -528,8 +588,6 @@ private:
 			node->return_type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
 		}
 
-		// TODO: push parameter names onto scope stack
-
 		// Function body
 		++token_iter;
 		skip_comments_and_newlines();
@@ -542,6 +600,7 @@ private:
 			parsing_error(*token_iter, msg.str());
 		}
 
+		scope_stack.pop_scope(); // End parameters scope
 
 		return node;
 	}
@@ -618,68 +677,8 @@ private:
 		}
 		++token_iter;
 
-		// This token should be the argument
-		switch (token_iter->type) {
-				// Scope
-			case LPAREN: {
-				node->parameters.push_back(parse_scope());
-				break;
-			}
-
-			// Literal
-			case INTEGER_LIT:
-			case FLOAT_LIT:
-			case STRING_LIT:
-			case RAW_STRING_LIT: {
-				// TODO
-				std::ostringstream msg;
-				msg << "TODO: literals are not parsed yet. ('" << token_iter->text << "').";
-				parsing_error(*token_iter, msg.str());
-			}
-
-			// Identifier or operator
-			case IDENTIFIER:
-			case OPERATOR: {
-				// Check if symbol is in scope
-				if (!scope_stack.is_symbol_in_scope(token_iter->text)) {
-					// Error
-					std::ostringstream msg;
-					msg << "Unary function call argument not in scope: '" << token_iter->text << "'.";
-					parsing_error(*token_iter, msg.str());
-				}
-
-				// If next token is a [, it's a function call
-				if (token_iter[1].type == LSQUARE) {
-					node->parameters.push_back(parse_standard_func_call());
-				}
-				// If token is a function but not being called with normal
-				// syntax, it has to be unary as well.
-				else if (token_is_function(*token_iter)) {
-					node->parameters.push_back(parse_unary_func_call());
-				}
-				// If token is a variable, but not being called as a function
-				else if (token_is_variable(*token_iter)) {
-					// TODO: do this properly
-					node->parameters.push_back(std::unique_ptr<VariableNode>(new VariableNode {token_iter->text}));
-					++token_iter;
-				}
-				// Otherwise, error
-				else {
-					// Error
-					std::ostringstream msg;
-					msg << "Invalid argument to unary function call: '" << token_iter->text << "'.";
-					parsing_error(*token_iter, msg.str());
-				}
-				break;
-			}
-
-			default: {
-				// Error
-				std::ostringstream msg;
-				msg << "Invalid argument to unary function call: '" << token_iter->text << "'.";
-				parsing_error(*token_iter, msg.str());
-			}
-		}
+		// Next primary expression should be the argument
+		node->parameters.push_back(parse_primary_expression());
 
 		return node;
 	}
@@ -690,7 +689,7 @@ private:
 		auto node = std::unique_ptr<FuncCallNode>(new FuncCallNode());
 		std::unique_ptr<ExprNode> rhs;
 
-		if (!token_is_function(*token_iter)) {
+		if (!token_is_const_function(*token_iter)) {
 			// Error
 			std::ostringstream msg;
 			msg << "Invalid name for binary function call: '" << token_iter->text << "'.";
@@ -705,68 +704,9 @@ private:
 
 		// Get rhs argument
 		++token_iter;
-		switch (token_iter->type) {
-				// Scope
-			case LPAREN: {
-				rhs = parse_scope();
-				break;
-			}
+		rhs = parse_primary_expression();
 
-			// Literal
-			case INTEGER_LIT:
-			case FLOAT_LIT:
-			case STRING_LIT:
-			case RAW_STRING_LIT: {
-				// TODO
-				std::ostringstream msg;
-				msg << "TODO: literals are not parsed yet. ('" << token_iter->text << "').";
-				parsing_error(*token_iter, msg.str());
-			}
-
-			// Identifier or operator
-			case IDENTIFIER:
-			case OPERATOR: {
-				// Check if symbol is in scope
-				if (!scope_stack.is_symbol_in_scope(token_iter->text)) {
-					// Error
-					std::ostringstream msg;
-					msg << "Binary function call argument not in scope: '" << token_iter->text << "'.";
-					parsing_error(*token_iter, msg.str());
-				}
-
-				// If next token is a [, it's a function call
-				if (token_iter[1].type == LSQUARE) {
-					rhs = parse_standard_func_call();
-				}
-				// If token is a function but not being called with normal
-				// syntax, it has to be unary.
-				else if (token_is_function(*token_iter)) {
-					rhs = parse_unary_func_call();
-				}
-				// If token is a variable, but not being called as a function
-				else if (token_is_variable(*token_iter)) {
-					// TODO: do this properly
-					node->parameters.push_back(std::unique_ptr<VariableNode>(new VariableNode {token_iter->text}));
-					++token_iter;
-				}
-				// Otherwise, error
-				else {
-					// Error
-					std::ostringstream msg;
-					msg << "Invalid argument to binary function call: '" << token_iter->text << "'.";
-					parsing_error(*token_iter, msg.str());
-				}
-				break;
-			}
-
-			default: {
-				// Error
-				std::ostringstream msg;
-				msg << "Invalid argument to binary function call: '" << token_iter->text << "'.";
-				parsing_error(*token_iter, msg.str());
-			}
-		}
-
+		// Handle precedence
 		while (true) {
 			if (token_is_delimeter(*token_iter)) {
 				node->parameters.push_back(std::move(lhs));
@@ -775,7 +715,7 @@ private:
 			} else if (lhs_prec >= my_prec) {
 				token_iter = pre_rhs;
 				return lhs;
-			} else if (token_is_function(*token_iter)) {
+			} else if (token_is_const_function(*token_iter)) {
 				if (get_op_prec(token_iter->text) > my_prec) {
 					rhs = parse_binary_func_call(std::move(rhs), my_prec);
 				} else {
