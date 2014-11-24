@@ -102,9 +102,11 @@ public:
 			// Call the appropriate parsing function for the token type
 			switch (token_iter->type) {
 					// Declarations
+				case K_CONST:
+				case K_LET:
+				case K_VAR:
 				case K_FN:
-				case K_STRUCT:
-				case K_LET: {
+				case K_STRUCT: {
 					ast.root->declarations.push_back(parse_declaration());
 					break;
 				}
@@ -222,6 +224,8 @@ private:
 
 
 	// Expression
+	// Parses a single full expression.  This method's idea of an expression
+	// is the most general, and includes declarations
 	std::unique_ptr<ExprNode> parse_expression() {
 		switch (token_iter->type) {
 				// Scope
@@ -236,9 +240,11 @@ private:
 			}
 
 			// Declaration
+			case K_CONST:
+			case K_LET:
+			case K_VAR:
 			case K_FN:
-			case K_STRUCT:
-			case K_LET: {
+			case K_STRUCT: {
 				return parse_declaration();
 			}
 
@@ -247,8 +253,7 @@ private:
 			case FLOAT_LIT:
 			case STRING_LIT:
 			case RAW_STRING_LIT: {
-				// TODO
-				parsing_error(*token_iter, "TODO: Parsing literals hasn't been implemented yet.");
+				return parse_literal();
 			}
 
 			// Identifier or operator, means this is a more
@@ -281,15 +286,12 @@ private:
 				break;
 
 				// Literal
+			case K_FN:
 			case INTEGER_LIT:
 			case FLOAT_LIT:
 			case STRING_LIT:
 			case RAW_STRING_LIT: {
-				// TODO
-				std::ostringstream msg;
-				msg << "TODO: literals are not parsed yet. ('" << token_iter->text << "').";
-				parsing_error(*token_iter, msg.str());
-				break;
+				return parse_literal();
 			}
 
 			case OPERATOR:
@@ -326,7 +328,7 @@ private:
 
 		// Error
 		std::ostringstream msg;
-		msg << "ICE primary_expression(). ('" << token_iter->text << "')";
+		msg << "ICE parse_2primary_expression(). ('" << token_iter->text << "')";
 		parsing_error(*token_iter, msg.str());
 		throw 0; // Silence warnings about not returning, parsing_error throws anyway
 	}
@@ -375,7 +377,11 @@ private:
 	// Declaration
 	std::unique_ptr<DeclNode> parse_declaration() {
 		switch (token_iter->type) {
-			case K_LET: {
+			case K_CONST:
+				return parse_constant_decl();
+
+			case K_LET:
+			case K_VAR: {
 				return parse_variable_decl();
 			}
 
@@ -394,8 +400,99 @@ private:
 	}
 
 
+	// Constant
+	std::unique_ptr<ConstantDeclNode> parse_constant_decl() {
+		auto node = std::unique_ptr<ConstantDeclNode>(new ConstantDeclNode);
+
+		++token_iter;
+		skip_comments_and_newlines();
+
+		// Get name
+		if (token_iter->type == IDENTIFIER) {
+			node->name = token_iter->text;
+		} else {
+			// Error
+			std::ostringstream msg;
+			msg << "Invalid constant name: '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
+		}
+
+		++token_iter;
+		skip_comments();
+
+		// Optional ":"
+		if (token_iter->type == COLON) {
+			++token_iter;
+			skip_comments_and_newlines();
+
+			if (token_iter->type == IDENTIFIER) {
+				// TODO
+				++token_iter;
+				node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+			} else {
+				// Error
+				std::ostringstream msg;
+				msg << "Invalid type name: '" << token_iter->text << "'.";
+				parsing_error(*token_iter, msg.str());
+			}
+		} else {
+			// Unknown type
+			// TODO
+			node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+		}
+
+		skip_comments();
+
+		// Initializer is required for constants
+		if (token_iter->type != OPERATOR || token_iter->text != "=") {
+			// Error
+			std::ostringstream msg;
+			msg << "Constant '" << node->name << "' has no initializer.";
+			parsing_error(*token_iter, msg.str());
+		}
+
+		++token_iter;
+		skip_comments_and_newlines();
+		if (token_iter->type == K_FN) {
+			if (!scope_stack.push_symbol(node->name, SymbolType::CONST_FUNCTION)) {
+				// Error
+				std::ostringstream msg;
+				msg << "Attempted to declare const function '" << node->name << "', but something with the same name is already in scope.";
+				parsing_error(*token_iter, msg.str());
+			}
+		} else {
+			if (!scope_stack.push_symbol(node->name, SymbolType::CONST_VARIABLE)) {
+				// Error
+				std::ostringstream msg;
+				msg << "Attempted to declare const variable '" << node->name << "', but something with the same name is already in scope.";
+				parsing_error(*token_iter, msg.str());
+			}
+		}
+
+		// Get initializer
+		node->initializer = parse_compound_expression();
+
+		skip_comments();
+
+		if (!token_is_delimeter(*token_iter)) {
+			// Error
+			std::ostringstream msg;
+			msg << "Invalid continuation of initializer. ('" << token_iter->text << "')";
+			parsing_error(*token_iter, msg.str());
+		}
+
+		return node;
+	}
+
+
+	// Variable
 	std::unique_ptr<VariableDeclNode> parse_variable_decl() {
 		auto node = std::unique_ptr<VariableDeclNode>(new VariableDeclNode);
+
+		if (token_iter->type == K_LET)
+			node->mut = false;
+		else if (token_iter->type == K_VAR)
+			node->mut = true;
 
 		// Variable name
 		++token_iter;
@@ -409,6 +506,7 @@ private:
 			parsing_error(*token_iter, msg.str());
 		}
 
+		// Push symbol onto scope stack
 		if (!scope_stack.push_symbol(node->name, SymbolType::VARIABLE)) {
 			// Error
 			std::ostringstream msg;
@@ -447,7 +545,7 @@ private:
 			++token_iter;
 			skip_comments();
 
-			node->initializer = parse_expression();
+			node->initializer = parse_compound_expression();
 		} else {
 			// No initializer
 			// TODO
@@ -468,8 +566,10 @@ private:
 
 
 	// Function definition
-	std::unique_ptr<FuncDeclNode> parse_func_definition() {
-		auto node = std::unique_ptr<FuncDeclNode>(new FuncDeclNode);
+	std::unique_ptr<ConstantDeclNode> parse_func_definition() {
+		// A function is really just a constant with a function
+		// literal assigned to it.
+		auto node = std::unique_ptr<ConstantDeclNode>(new ConstantDeclNode);
 
 		// Function name
 		++token_iter;
@@ -487,120 +587,17 @@ private:
 		if (!scope_stack.push_symbol(node->name, SymbolType::CONST_FUNCTION)) {
 			// Error
 			std::ostringstream msg;
-			msg << "Attempted to declare function '" << token_iter->text << "', but something with the same name is already in scope.";
+			msg << "Attempted to declare function '" << node->name << "', but something with the same name is already in scope.";
 			parsing_error(*token_iter, msg.str());
 		}
 
-
-
-		// Open bracket
+		// Function definition
 		++token_iter;
 		skip_comments_and_newlines();
-		if (token_iter->type != LSQUARE) {
-			// Error
-			std::ostringstream msg;
-			msg << "Attempted to declare a function without a parameter list.";
-			parsing_error(*token_iter, msg.str());
-		}
+		node->initializer = parse_function_literal(false);
 
-		// Parameters
-		scope_stack.push_scope(); // Begin parameters scope (ends after body)
-		while (true) {
-			// Parameter name
-			++token_iter;
-			skip_comments_and_newlines();
-			StringSlice name;
-			if (token_iter->type == IDENTIFIER)
-				name = token_iter->text;
-			else if (token_iter->type == RSQUARE)
-				break;
-			else {
-				// Error
-				std::ostringstream msg;
-				msg << "Something fishy with the end of this function declaration's parameter list.";
-				parsing_error(*token_iter, msg.str());
-			}
-
-			// Colon
-			++token_iter;
-			skip_comments_and_newlines();
-			if (token_iter->type != COLON) {
-				// Error
-				std::ostringstream msg;
-				msg << "Function parameter lacks a type.";
-				parsing_error(*token_iter, msg.str());
-			}
-
-			// Parameter type
-			// TODO: types aren't just names, need to evaluate full type expression here.
-			++token_iter;
-			skip_comments_and_newlines();
-			if (token_iter->type == IDENTIFIER) {
-				node->parameters.push_back(NameTypePair {name, std::unique_ptr<TypeExprNode>(new TypeExprNode())});
-
-				// Push onto scope
-				if (!scope_stack.push_symbol(name, SymbolType::VARIABLE)) {
-					// Error
-					std::ostringstream msg;
-					msg << "Function declaration has a parameter name '" << name << "', but something with that name is already in scope.";
-					parsing_error(*token_iter, msg.str());
-				}
-			} else {
-				// Error
-				std::ostringstream msg;
-				msg << "Invalid type name for function parameter: '" << token_iter->text << "'.";
-				parsing_error(*token_iter, msg.str());
-			}
-
-			// Either a comma or closing square bracket
-			++token_iter;
-			skip_comments_and_newlines();
-			if (token_iter->type == COMMA)
-				continue;
-			else if (token_iter->type == RSQUARE)
-				break;
-			else {
-				// Error
-				std::ostringstream msg;
-				msg << "Something fishy with the end of this function declaration's parameter list.";
-				parsing_error(*token_iter, msg.str());
-			}
-		}
-
-		// -> (optional return type)
-		++token_iter;
-		skip_comments_and_newlines();
-		if (token_iter->type == OPERATOR && token_iter->text == "->") {
-			// Return type
-			// TODO: types aren't just names, need to evaluate full type expression here.
-			++token_iter;
-			skip_comments_and_newlines();
-			if (token_iter->type == IDENTIFIER)
-				node->return_type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
-			else {
-				// Error
-				std::ostringstream msg;
-				msg << "Invalid type name for return type: '" << token_iter->text << "'.";
-				parsing_error(*token_iter, msg.str());
-			}
-		} else {
-			// TODO: empty return type
-			node->return_type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
-		}
-
-		// Function body
-		++token_iter;
-		skip_comments_and_newlines();
-		if (token_iter->type == LPAREN) {
-			node->body = parse_scope();
-		} else {
-			// Error
-			std::ostringstream msg;
-			msg << "Function definition with no body.";
-			parsing_error(*token_iter, msg.str());
-		}
-
-		scope_stack.pop_scope(); // End parameters scope
+		// TODO: type
+		node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
 
 		return node;
 	}
@@ -767,6 +764,166 @@ private:
 
 		// Pop this scope
 		scope_stack.pop_scope();
+
+		return node;
+	}
+
+
+
+
+	////////////////////////////////////////////////////////
+	// LITERALS
+	////////////////////////////////////////////////////////
+
+	std::unique_ptr<LiteralNode> parse_literal() {
+		switch (token_iter->type) {
+			case INTEGER_LIT:
+			case FLOAT_LIT:
+			case STRING_LIT:
+			case RAW_STRING_LIT: {
+				// TODO
+				std::ostringstream msg;
+				msg << "TODO: some literals are not parsed yet. ('" << token_iter->text << "').";
+				parsing_error(*token_iter, msg.str());
+				break;
+			}
+
+			case K_FN:
+				return parse_function_literal();
+
+			default:
+				break;
+		}
+
+		// ERROR
+		std::ostringstream msg;
+		msg << "ICE parse_literal(). ('" << token_iter->text << "').";
+		parsing_error(*token_iter, msg.str());
+		throw 0;
+	}
+
+
+	std::unique_ptr<FuncLiteralNode> parse_function_literal(bool has_fn = true) {
+		auto node = std::unique_ptr<FuncLiteralNode>(new FuncLiteralNode);
+
+		if (has_fn) {
+			if (token_iter->type == K_FN) {
+				++token_iter;
+				skip_comments_and_newlines();
+			} else {
+				// Error
+				std::ostringstream msg;
+				msg << "Function literal must start with 'fn'.";
+				parsing_error(*token_iter, msg.str());
+			}
+		}
+
+		// Open bracket
+		if (token_iter->type != LSQUARE) {
+			// Error
+			std::ostringstream msg;
+			msg << "Attempted to define a function without a parameter list.";
+			parsing_error(*token_iter, msg.str());
+		}
+
+		// Parameters
+		scope_stack.push_scope(); // Begin parameters scope (ends after body)
+		while (true) {
+			// Parameter name
+			++token_iter;
+			skip_comments_and_newlines();
+			StringSlice name;
+			if (token_iter->type == IDENTIFIER)
+				name = token_iter->text;
+			else if (token_iter->type == RSQUARE)
+				break;
+			else {
+				// Error
+				std::ostringstream msg;
+				msg << "Something fishy with the end of this function definition's parameter list.";
+				parsing_error(*token_iter, msg.str());
+			}
+
+			// Colon
+			++token_iter;
+			skip_comments_and_newlines();
+			if (token_iter->type != COLON) {
+				// Error
+				std::ostringstream msg;
+				msg << "Function parameter lacks a type.";
+				parsing_error(*token_iter, msg.str());
+			}
+
+			// Parameter type
+			// TODO: types aren't just names, need to evaluate full type expression here.
+			++token_iter;
+			skip_comments_and_newlines();
+			if (token_iter->type == IDENTIFIER) {
+				node->parameters.push_back(NameTypePair {name, std::unique_ptr<TypeExprNode>(new TypeExprNode())});
+
+				// Push onto scope
+				if (!scope_stack.push_symbol(name, SymbolType::VARIABLE)) {
+					// Error
+					std::ostringstream msg;
+					msg << "Function definition has a parameter name '" << name << "', but something with that name is already in scope.";
+					parsing_error(*token_iter, msg.str());
+				}
+			} else {
+				// Error
+				std::ostringstream msg;
+				msg << "Invalid type name for function parameter: '" << token_iter->text << "'.";
+				parsing_error(*token_iter, msg.str());
+			}
+
+			// Either a comma or closing square bracket
+			++token_iter;
+			skip_comments_and_newlines();
+			if (token_iter->type == COMMA)
+				continue;
+			else if (token_iter->type == RSQUARE)
+				break;
+			else {
+				// Error
+				std::ostringstream msg;
+				msg << "Something fishy with the end of this function declaration's parameter list.";
+				parsing_error(*token_iter, msg.str());
+			}
+		}
+
+		// -> (optional return type)
+		++token_iter;
+		skip_comments_and_newlines();
+		if (token_iter->type == OPERATOR && token_iter->text == "->") {
+			// Return type
+			// TODO: types aren't just names, need to evaluate full type expression here.
+			++token_iter;
+			skip_comments_and_newlines();
+			if (token_iter->type == IDENTIFIER)
+				node->return_type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+			else {
+				// Error
+				std::ostringstream msg;
+				msg << "Invalid type name for return type: '" << token_iter->text << "'.";
+				parsing_error(*token_iter, msg.str());
+			}
+		} else {
+			// TODO: empty return type
+			node->return_type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+		}
+
+		// Function body
+		++token_iter;
+		skip_comments_and_newlines();
+		if (token_iter->type == LPAREN) {
+			node->body = parse_scope();
+		} else {
+			// Error
+			std::ostringstream msg;
+			msg << "Function definition has no body.";
+			parsing_error(*token_iter, msg.str());
+		}
+
+		scope_stack.pop_scope(); // End parameters scope
 
 		return node;
 	}

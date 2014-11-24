@@ -151,7 +151,7 @@ struct NameTypePair {
 // Declarations
 ////////////////////////////////////////////////////////////////
 
-struct VariableDeclNode: DeclNode {
+struct ConstantDeclNode: DeclNode {
 	StringSlice name;
 	uptr<TypeExprNode> type;
 	uptr<ExprNode> initializer;
@@ -159,9 +159,9 @@ struct VariableDeclNode: DeclNode {
 	virtual void print(int indent) {
 		// Name
 		print_indent(indent);
-		std::cout << "VARIABLE " << name << std::endl;
+		std::cout << "CONSTANT_DECL " << name << std::endl;
 
-		// Return type
+		// Type
 		print_indent(indent+1);
 		std::cout << "TYPE" << std::endl;
 		type->print(indent+2);
@@ -175,35 +175,30 @@ struct VariableDeclNode: DeclNode {
 	}
 };
 
-struct FuncDeclNode: DeclNode {
+struct VariableDeclNode: DeclNode {
 	StringSlice name;
-	std::vector<NameTypePair> parameters;
-	uptr<TypeExprNode> return_type;
-	uptr<ScopeNode> body;
+	bool mut;
+	uptr<TypeExprNode> type;
+	uptr<ExprNode> initializer;
 
 	virtual void print(int indent) {
 		// Name
 		print_indent(indent);
-		std::cout << "FUNCTION " << name << std::endl;
-
-		// Parameters
-		print_indent(indent+1);
-		std::cout << "PARAMETERS" << std::endl;
-		for (auto& p: parameters) {
-			p.print(indent+2);
-			std::cout << std::endl;
-		}
-
-		// Return type
-		print_indent(indent+1);
-		std::cout << "RETURN_TYPE" << std::endl;
-		return_type->print(indent+2);
+		std::cout << "VARIABLE_DECL " << name;
+		if (mut)
+			std::cout << " (mutable)";
 		std::cout << std::endl;
 
-		// Body
+		// Type
 		print_indent(indent+1);
-		std::cout << "BODY" << std::endl;
-		body->print(indent+1);
+		std::cout << "TYPE" << std::endl;
+		type->print(indent+2);
+		std::cout << std::endl;
+
+		// Initializer
+		print_indent(indent+1);
+		std::cout << "INIT" << std::endl;
+		initializer->print(indent+2);
 		std::cout << std::endl;
 	}
 };
@@ -232,6 +227,37 @@ struct FloatLiteralNode: LiteralNode {
 };
 
 
+struct FuncLiteralNode: LiteralNode {
+	std::vector<NameTypePair> parameters;
+	uptr<TypeExprNode> return_type;
+	uptr<ScopeNode> body;
+
+	virtual void print(int indent) {
+		// Function
+		print_indent(indent);
+		std::cout << "FUNCTION" << std::endl;
+
+		// Parameters
+		print_indent(indent+1);
+		std::cout << "PARAMETERS" << std::endl;
+		for (auto& p: parameters) {
+			p.print(indent+2);
+			std::cout << std::endl;
+		}
+
+		// Return type
+		print_indent(indent+1);
+		std::cout << "RETURN_TYPE" << std::endl;
+		return_type->print(indent+2);
+		std::cout << std::endl;
+
+		// Body
+		print_indent(indent+1);
+		std::cout << "BODY" << std::endl;
+		body->print(indent+1);
+		std::cout << std::endl;
+	}
+};
 
 
 ////////////////////////////////////////////////////////////////
