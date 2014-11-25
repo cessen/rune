@@ -7,10 +7,10 @@ cmake_minimum_required (VERSION 2.8)
 #--------------------------------------
 # Build configuration
 #--------------------------------------
-project (NLang)
-set (NLANG_VERSION_MAJOR 0)
-set (NLANG_VERSION_MINOR 0)
-set (NLANG_VERSION_PATCH 0)
+project (Rune)
+set (RUNE_VERSION_MAJOR 0)
+set (RUNE_VERSION_MINOR 0)
+set (RUNE_VERSION_PATCH 0)
 
 # Build type (Release, Debug)
 set (CMAKE_BUILD_TYPE Debug)
@@ -78,16 +78,16 @@ add_subdirectory(parser)
 #	global)
 
 # Main library
-set (NLANG_LIB
+set (RUNE_LIB
 	lexer
 	parser
 	)
 
 # Main executable
-add_executable(nlang
+add_executable(rune
 	main)
-target_link_libraries(nlang
-	${NLANG_LIB}
+target_link_libraries(rune
+	${RUNE_LIB}
 	${Boost_LIBRARIES}
 	)
 
@@ -97,7 +97,7 @@ file(GLOB_RECURSE TEST_FILES *_test.cpp) # Find all tests
 add_executable(unit_tests
 	"test/test_main" ${TEST_FILES})
 target_link_libraries(unit_tests
-	${NLANG_LIB}
+	${RUNE_LIB}
 	${Boost_LIBRARIES}
 	)
 
