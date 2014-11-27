@@ -36,31 +36,18 @@ set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
 set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 
 
-#--------------------------------------
-# Boost
-#--------------------------------------
-
-set (Boost_MULTITHREADED TRUE)
-set (Boost_USE_STATIC_LIBS FALSE)
-
-find_package (Boost 1.48 COMPONENTS program_options unit_test_framework REQUIRED)
-
-include_directories (${Boost_INCLUDE_DIRS})
-link_directories (${Boost_LIBRARY_DIRS})
-
-
 
 #--------------------------------------
 # Project include directories
 #--------------------------------------
-include_directories ("${PROJECT_BINARY_DIR}",
-					 "${PROJECT_SOURCE_DIR}",
-					 "${PROJECT_SOURCE_DIR}/test",
-					 "${PROJECT_SOURCE_DIR}/ast",
-					 "${PROJECT_SOURCE_DIR}/lexer",
-					 "${PROJECT_SOURCE_DIR}/parser",
-					 "${PROJECT_SOURCE_DIR}/tokens",
-                     "${PROJECT_SOURCE_DIR}/utils",
+include_directories ("${PROJECT_BINARY_DIR}"
+					 "${PROJECT_SOURCE_DIR}"
+					 "${PROJECT_SOURCE_DIR}/test"
+					 "${PROJECT_SOURCE_DIR}/ast"
+					 "${PROJECT_SOURCE_DIR}/lexer"
+					 "${PROJECT_SOURCE_DIR}/parser"
+					 "${PROJECT_SOURCE_DIR}/tokens"
+                     "${PROJECT_SOURCE_DIR}/utils"
 					)
 
 
@@ -88,16 +75,14 @@ add_executable(rune
 	main)
 target_link_libraries(rune
 	${RUNE_LIB}
-	${Boost_LIBRARIES}
 	)
 
-# Unit-test executable
-file(GLOB_RECURSE TEST_FILES *_test.cpp) # Find all tests
-
-add_executable(unit_tests
-	"test/test_main" ${TEST_FILES})
-target_link_libraries(unit_tests
-	${RUNE_LIB}
-	${Boost_LIBRARIES}
-	)
+## Unit-test executable
+#file(GLOB_RECURSE TEST_FILES *_test.cpp) # Find all tests
+#
+#add_executable(unit_tests
+#	"test/test_main" ${TEST_FILES})
+#target_link_libraries(unit_tests
+#	${RUNE_LIB}
+#	)
 
