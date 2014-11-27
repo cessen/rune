@@ -134,8 +134,8 @@ public:
 done:
 
 		// Move lists of declarations and namespaces into root
-		ast.root->namespaces = ast.store.alloc_from_vector(namespaces);
-		ast.root->declarations = ast.store.alloc_from_vector(declarations);
+		ast.root->namespaces = ast.store.alloc_from_iters(namespaces.begin(), namespaces.end());
+		ast.root->declarations = ast.store.alloc_from_iters(declarations.begin(), declarations.end());
 
 		// Return the AST
 		return std::move(ast);

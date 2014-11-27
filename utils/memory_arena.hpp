@@ -83,27 +83,29 @@ public:
 	 * Allocates a single item of type T.
 	 */
 	template <typename T>
-	T* alloc() {
+	T* alloc_single() {
 		return alloc(1);
 	}
 
 
 	/**
-	 * Allocates space to hold the contents of the vector, and copys the
-	 * vector's contents over.  Returns a Slice to that memory.
+	 * Allocates space to hold the contents of the iters, and copys the
+	 * iter's contents over.  Returns a Slice to that memory.
 	 */
-	template <typename T>
-	Slice<T> alloc_from_vector(const std::vector<T>& vec) {
-		if (vec.size() <= 0)
+	template <typename ITER, typename T=typename ITER::value_type>
+	Slice<T> alloc_from_iters(ITER begin, ITER end) {
+		const size_t size = std::distance(begin, end);
+		if (size <= 0)
 			return Slice<T>();
 
-		auto ptr = alloc<T>(vec.size());
+		auto ptr = alloc<T>(size);
 
-		for (size_t i = 0; i < vec.size(); ++i) {
-			ptr[i] = vec[i];
+		for (size_t i = 0; i < size; ++i) {
+			ptr[i] = *begin;
+			++begin;
 		}
 
-		return Slice<T>(ptr, vec.size());
+		return Slice<T>(ptr, size);
 	}
 };
 
