@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include "memory_arena.hpp"
 #include "string_slice.hpp"
 
 // We use std::unique_ptr's a lot in this code, so make it shorter
@@ -92,17 +93,17 @@ struct DeclNode: StatementNode {
  */
 struct NamespaceNode: ASTNode {
 	StringSlice name;
-	uptr_vec<NamespaceNode> namespaces;
-	uptr_vec<DeclNode> declarations;
+	Slice<NamespaceNode*> namespaces;
+	Slice<DeclNode*> declarations;
 
 	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "namespace " << name << " {" << std::endl;
-		for (const auto &n: namespaces) {
+		for (auto& n: namespaces) {
 			n->print(indent+1);
 			std::cout << std::endl;
 		}
-		for (const auto &d: declarations) {
+		for (auto& d: declarations) {
 			d->print(indent+1);
 			std::cout << std::endl;
 		}
@@ -321,6 +322,7 @@ class AST
 {
 public:
 	uptr<NamespaceNode> root;
+	MemoryArena<> store; // Memory store for nodes
 
 	void print() {
 		root->print(0);

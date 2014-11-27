@@ -94,8 +94,11 @@ public:
 
 	AST parse() {
 		ast.root = std::unique_ptr<NamespaceNode>(new NamespaceNode());
+		std::vector<NamespaceNode*> namespaces;
+		std::vector<DeclNode*> declarations;
 
-		// Iterate over the tokens
+		// Iterate over the tokens and collect all top-level
+		// declarations and namespaces
 		while (token_iter < end) {
 			skip_comments_and_newlines();
 
@@ -107,7 +110,7 @@ public:
 				case K_VAR:
 				case K_FN:
 				case K_STRUCT: {
-					ast.root->declarations.push_back(parse_declaration());
+					declarations.push_back(parse_declaration().release());
 					break;
 				}
 
@@ -130,6 +133,11 @@ public:
 
 done:
 
+		// Move lists of declarations and namespaces into root
+		ast.root->namespaces = ast.store.alloc_from_vector(namespaces);
+		ast.root->declarations = ast.store.alloc_from_vector(declarations);
+
+		// Return the AST
 		return std::move(ast);
 	}
 
