@@ -1,1 +1,3 @@
 - Unit tests for lexer
+- Write memory arena class for use in AST
+- Change AST and Parser to use memory arena class
