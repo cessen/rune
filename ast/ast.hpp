@@ -32,8 +32,23 @@ static void print_indent(int indent)
  * virtual destructor.
  */
 struct ASTNode {
-	virtual void print(int indent) {}
 	virtual ~ASTNode() {}
+
+	virtual void print(int indent) {
+		print_indent(indent);
+		std::cout << "EMPTY_ASTNode";
+	}
+};
+
+
+/**
+ * Base class for Expression and Declaration nodes.
+ */
+struct StatementNode: ASTNode {
+	virtual void print(int indent) {
+		print_indent(indent);
+		std::cout << "EMPTY_Statement";
+	}
 };
 
 
@@ -51,7 +66,7 @@ struct TypeExprNode: ASTNode {
 /**
  * Expression node base class.
  */
-struct ExprNode: ASTNode {
+struct ExprNode: StatementNode {
 	uptr<TypeExprNode> eval_type;  // Type that the expression evaluates to
 
 	virtual void print(int indent) {
@@ -64,7 +79,7 @@ struct ExprNode: ASTNode {
 /**
  * Declaration node base class.
  */
-struct DeclNode: ExprNode {
+struct DeclNode: StatementNode {
 	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "EMPTY_Decl";
@@ -101,12 +116,12 @@ struct NamespaceNode: ASTNode {
  * Scope node.
  */
 struct ScopeNode: ExprNode {
-	uptr_vec<ExprNode> expressions;
+	uptr_vec<StatementNode> statements;
 
 	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "(\n";
-		for (auto &e: expressions) {
+		for (auto &e: statements) {
 			e->print(indent+1);
 			std::cout << std::endl;
 		}

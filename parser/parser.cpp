@@ -223,10 +223,10 @@ private:
 	////////////////////////////////////////////////
 
 
-	// Expression
-	// Parses a single full expression.  This method's idea of an expression
-	// is the most general, and includes declarations
-	std::unique_ptr<ExprNode> parse_expression() {
+	// Statement
+	// Parses a single full statement.  In general this means a declaration
+	// or an expression.
+	std::unique_ptr<StatementNode> parse_statement() {
 		switch (token_iter->type) {
 				// Scope
 			case LPAREN: {
@@ -261,7 +261,7 @@ private:
 			case IDENTIFIER:
 			case OPERATOR: {
 				assert_in_scope(*token_iter);
-				return parse_compound_expression();
+				return parse_expression();
 			}
 
 			default: {
@@ -278,7 +278,6 @@ private:
 	// Primary expression
 	// Parses the fewest number of tokens that result in a single
 	// valid expression while keeping surrounding code valid.
-	// Note: this excludes declarations.
 	std::unique_ptr<ExprNode> parse_primary_expression() {
 		switch (token_iter->type) {
 			case LPAREN:
@@ -334,11 +333,10 @@ private:
 	}
 
 
-	// Compound expression
+	// Expression
 	// Parses the largest number of tokens that result in a single valid
 	// expression while keeping surrounding code valid.
-	// Note: this excludes declarations.
-	std::unique_ptr<ExprNode> parse_compound_expression() {
+	std::unique_ptr<ExprNode> parse_expression() {
 		std::unique_ptr<ExprNode> lhs;
 
 		// LHS
@@ -470,7 +468,7 @@ private:
 		}
 
 		// Get initializer
-		node->initializer = parse_compound_expression();
+		node->initializer = parse_expression();
 
 		skip_comments();
 
@@ -545,7 +543,7 @@ private:
 			++token_iter;
 			skip_comments();
 
-			node->initializer = parse_compound_expression();
+			node->initializer = parse_expression();
 		} else {
 			// No initializer
 			// TODO
@@ -758,7 +756,7 @@ private:
 			}
 			// Should be an expression
 			else {
-				node->expressions.push_back(parse_expression());
+				node->statements.push_back(parse_statement());
 			}
 		}
 
