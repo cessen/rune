@@ -190,9 +190,9 @@ private:
 		}
 	}
 
-	// Returns whether the token is a delimeter token, i.e. a token
+	// Returns whether the token is a terminator token, i.e. a token
 	// that ends an expression.
-	bool token_is_delimeter(Token t) {
+	bool token_is_terminator(Token t) {
 		return (
 		           t.type == NEWLINE ||
 		           t.type == COMMA ||
@@ -225,15 +225,11 @@ private:
 
 	// Statement
 	// Parses a single full statement.  In general this means a declaration
-	// or an expression.
+	// or an expression, but also includes things like return and break
+	// statements.
 	std::unique_ptr<StatementNode> parse_statement() {
 		switch (token_iter->type) {
-				// Scope
-			case LPAREN: {
-				return parse_scope();
-			}
-
-			// Return statement
+				// Return statement
 			case K_RETURN: {
 				// TODO
 				parsing_error(*token_iter, "TODO: Return statements haven't been implemented yet.");
@@ -248,26 +244,21 @@ private:
 				return parse_declaration();
 			}
 
-			// Literal
+			// Expression
 			case INTEGER_LIT:
 			case FLOAT_LIT:
 			case STRING_LIT:
-			case RAW_STRING_LIT: {
-				return parse_literal();
-			}
-
-			// Identifier or operator, means this is a more
-			// complex case.
+			case RAW_STRING_LIT:
+			case LPAREN:
 			case IDENTIFIER:
 			case OPERATOR: {
-				assert_in_scope(*token_iter);
 				return parse_expression();
 			}
 
 			default: {
 				// Error
 				std::ostringstream msg;
-				msg << "Unknown expression '" << token_iter->text << "'.";
+				msg << "Unknown statement '" << token_iter->text << "'.";
 				parsing_error(*token_iter, msg.str());
 				throw 0; // Silence warnings about not returning, parsing_error throws anyway
 			}
@@ -275,9 +266,37 @@ private:
 	}
 
 
+	// Expression
+	// Parses the largest number of tokens that result in a single valid
+	// expression.
+	std::unique_ptr<ExprNode> parse_expression() {
+		std::unique_ptr<ExprNode> lhs;
+
+		// LHS
+		lhs = parse_primary_expression();
+
+		// RHS
+		// Now that we have an lhs, let's see if there are any binary ops
+		// following it.
+		if (token_is_terminator(*token_iter)) {
+			return lhs;
+		} else if (token_is_const_function(*token_iter)) {
+			// Parse binary operator
+			lhs = parse_binary_func_call(std::move(lhs), -1000000);
+		} else {
+			// Error
+			std::ostringstream msg;
+			msg << "Expected a binary operator, but instead found '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
+		}
+
+		return lhs;
+	}
+
+
 	// Primary expression
 	// Parses the fewest number of tokens that result in a single
-	// valid expression while keeping surrounding code valid.
+	// valid expression (while keeping surrounding code valid).
 	std::unique_ptr<ExprNode> parse_primary_expression() {
 		switch (token_iter->type) {
 			case LPAREN:
@@ -303,7 +322,7 @@ private:
 				}
 				// Token is const function
 				else if (token_is_const_function(*token_iter)) {
-					if (!token_is_delimeter(token_iter[1])) {
+					if (!token_is_terminator(token_iter[1])) {
 						return parse_unary_func_call();
 					} else {
 						// TODO
@@ -327,48 +346,9 @@ private:
 
 		// Error
 		std::ostringstream msg;
-		msg << "ICE parse_2primary_expression(). ('" << token_iter->text << "')";
+		msg << "ICE parse_primary_expression(). ('" << token_iter->text << "')";
 		parsing_error(*token_iter, msg.str());
 		throw 0; // Silence warnings about not returning, parsing_error throws anyway
-	}
-
-
-	// Expression
-	// Parses the largest number of tokens that result in a single valid
-	// expression while keeping surrounding code valid.
-	std::unique_ptr<ExprNode> parse_expression() {
-		std::unique_ptr<ExprNode> lhs;
-
-		// LHS
-		// If next token is a delimeter, we have a singleton
-		if (token_is_delimeter(token_iter[1])) {
-			// TODO
-			std::ostringstream msg;
-			msg << "TODO: singleton expressions not yet supported. ('" << token_iter->text << "')";
-			parsing_error(*token_iter, msg.str());
-		}
-		// Otherwise, parse the primary expression as the lhs
-		else {
-			lhs = parse_primary_expression();
-		}
-
-
-		// RHS
-		// Now that we have an lhs, let's see if there are any binary ops
-		// following it.
-		if (token_is_delimeter(*token_iter)) {
-			return lhs;
-		} else if (token_is_const_function(*token_iter)) {
-			// Parse binary operator
-			lhs = parse_binary_func_call(std::move(lhs), -1000000);
-		} else {
-			// Error
-			std::ostringstream msg;
-			msg << "No binary operator in scope named '" << token_iter->text << "'.";
-			parsing_error(*token_iter, msg.str());
-		}
-
-		return lhs;
 	}
 
 
@@ -472,7 +452,7 @@ private:
 
 		skip_comments();
 
-		if (!token_is_delimeter(*token_iter)) {
+		if (!token_is_terminator(*token_iter)) {
 			// Error
 			std::ostringstream msg;
 			msg << "Invalid continuation of initializer. ('" << token_iter->text << "')";
@@ -552,7 +532,7 @@ private:
 
 		skip_comments();
 
-		if (!token_is_delimeter(*token_iter)) {
+		if (!token_is_terminator(*token_iter)) {
 			// Error
 			std::ostringstream msg;
 			msg << "Invalid continuation of expression: '" << token_iter->text << "'.";
@@ -703,7 +683,7 @@ private:
 
 		// Handle precedence
 		while (true) {
-			if (token_is_delimeter(*token_iter)) {
+			if (token_is_terminator(*token_iter)) {
 				node->parameters.push_back(std::move(lhs));
 				node->parameters.push_back(std::move(rhs));
 				break;
