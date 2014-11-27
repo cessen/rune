@@ -9,7 +9,7 @@
 
 int main(int argc, char** argv)
 {
-	std::cout << "NLang v" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << "\n";
+	std::cout << "Rune v" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << "\n";
 
 	if (argc < 2) {
 		std::cout << "You must specify a file to compile.\n";
