@@ -39,12 +39,7 @@ int main(int argc, char** argv)
 	}
 
 	std::cout << "Parsing..." << std::endl;
-	//try {
 	auto ast = parse_tokens(argv[1], tokens);
-	//}
-	//catch (ParseError e) {
-	//    // Do nothing
-	//}
 
 	ast.print();
 
