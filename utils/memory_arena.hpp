@@ -64,7 +64,7 @@ class MemoryArena
 public:
 	MemoryArena() {
 		// Start with a single chunk of size zero,
-		// to simplify the logic in alloc()
+		// to simplify the logic in _alloc()
 		add_chunk(0);
 	}
 	~MemoryArena() {
