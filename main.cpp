@@ -46,5 +46,7 @@ int main(int argc, char** argv)
 	//    // Do nothing
 	//}
 
+	ast.print();
+
 	return 0;
 }

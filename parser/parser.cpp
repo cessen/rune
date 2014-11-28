@@ -931,11 +931,6 @@ private:
 AST parse_tokens(const char* file_path, const std::vector<Token>& tokens)
 {
 	Parser parser(file_path, tokens);
-	AST ast;
 
-	ast = parser.parse();
-
-	ast.print();
-
-	return ast;
+	return parser.parse();
 }
