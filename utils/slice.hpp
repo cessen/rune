@@ -1,6 +1,7 @@
 #ifndef SLICE_HPP
 #define SLICE_HPP
 
+#include <cstdlib>
 #include <cassert>
 
 /**
@@ -10,30 +11,44 @@
 template <typename T>
 class Slice
 {
-	T* data = nullptr;
-	size_t size = 0;
+	T* _data = nullptr;
+	size_t _size = 0;
 
 public:
 	Slice() {}
-	Slice(T* ptr, size_t size): data {ptr}, size {size}
+	Slice(T* ptr, size_t size): _data {ptr}, _size {size}
 	{}
 
 	T& operator*() {
-		assert(data != nullptr);
-		return *data;
+		assert(_data != nullptr);
+		return *_data;
+	}
+
+	const T& operator*() const {
+		assert(_data != nullptr);
+		return *_data;
 	}
 
 	T& operator[](size_t i) {
-		assert(data != nullptr && size > i);
-		return *(data+i);
+		assert(_data != nullptr && _size > i);
+		return *(_data+i);
+	}
+
+	const T& operator[](size_t i) const {
+		assert(_data != nullptr && _size > i);
+		return *(_data+i);
+	}
+
+	size_t size() const {
+		return _size;
 	}
 
 	T* begin() {
-		return data;
+		return _data;
 	}
 
 	T* end() {
-		return data + size;
+		return _data + _size;
 	}
 };
 

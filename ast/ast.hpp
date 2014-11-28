@@ -2,19 +2,8 @@
 #define AST_HPP
 
 #include <iostream>
-#include <memory>
-#include <vector>
 #include "memory_arena.hpp"
 #include "string_slice.hpp"
-
-// We use std::unique_ptr's a lot in this code, so make it shorter
-template <typename T>
-using uptr = std::unique_ptr<T>;
-
-// Same with std::vector's of std::unique_ptr's
-template <typename T>
-using uptr_vec = std::vector<std::unique_ptr<T>>;
-
 
 
 static void print_indent(int indent)
@@ -68,7 +57,7 @@ struct TypeExprNode: ASTNode {
  * Expression node base class.
  */
 struct ExprNode: StatementNode {
-	uptr<TypeExprNode> eval_type;  // Type that the expression evaluates to
+	TypeExprNode* eval_type;  // Type that the expression evaluates to
 
 	virtual void print(int indent) {
 		print_indent(indent);
@@ -117,7 +106,7 @@ struct NamespaceNode: ASTNode {
  * Scope node.
  */
 struct ScopeNode: ExprNode {
-	uptr_vec<StatementNode> statements;
+	Slice<StatementNode*> statements;
 
 	virtual void print(int indent) {
 		print_indent(indent);
@@ -151,7 +140,7 @@ struct LiteralNode: ExprNode {
 
 struct NameTypePair {
 	StringSlice name;
-	uptr<TypeExprNode> type;
+	TypeExprNode* type;
 
 	void print(int indent) {
 		print_indent(indent);
@@ -169,8 +158,8 @@ struct NameTypePair {
 
 struct ConstantDeclNode: DeclNode {
 	StringSlice name;
-	uptr<TypeExprNode> type;
-	uptr<ExprNode> initializer;
+	TypeExprNode* type;
+	ExprNode* initializer;
 
 	virtual void print(int indent) {
 		// Name
@@ -194,8 +183,8 @@ struct ConstantDeclNode: DeclNode {
 struct VariableDeclNode: DeclNode {
 	StringSlice name;
 	bool mut;
-	uptr<TypeExprNode> type;
-	uptr<ExprNode> initializer;
+	TypeExprNode* type;
+	ExprNode* initializer;
 
 	virtual void print(int indent) {
 		// Name
@@ -221,12 +210,12 @@ struct VariableDeclNode: DeclNode {
 
 struct StructDeclNode: DeclNode {
 	StringSlice name;
-	std::vector<NameTypePair> fields;
+	Slice<NameTypePair> fields;
 };
 
 struct EnumDeclNode: DeclNode {
 	StringSlice name;
-	std::vector<NameTypePair> variants;
+	Slice<NameTypePair> variants;
 };
 
 
@@ -244,9 +233,9 @@ struct FloatLiteralNode: LiteralNode {
 
 
 struct FuncLiteralNode: LiteralNode {
-	std::vector<NameTypePair> parameters;
-	uptr<TypeExprNode> return_type;
-	uptr<ScopeNode> body;
+	Slice<NameTypePair> parameters;
+	TypeExprNode* return_type;
+	ScopeNode* body;
 
 	virtual void print(int indent) {
 		// Function
@@ -283,6 +272,7 @@ struct FuncLiteralNode: LiteralNode {
 struct VariableNode: ExprNode {
 	StringSlice name;
 
+	VariableNode() {}
 	VariableNode(StringSlice name): name {name}
 	{}
 
@@ -299,7 +289,7 @@ struct FuncNode: ExprNode {
 
 struct FuncCallNode: ExprNode {
 	StringSlice name;
-	uptr_vec<ExprNode> parameters;
+	Slice<ExprNode*> parameters;
 
 	virtual void print(int indent) {
 		// Name
@@ -321,7 +311,7 @@ struct FuncCallNode: ExprNode {
 class AST
 {
 public:
-	uptr<NamespaceNode> root;
+	NamespaceNode* root;
 	MemoryArena<> store; // Memory store for nodes
 
 	void print() {

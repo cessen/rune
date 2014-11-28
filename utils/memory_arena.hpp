@@ -43,7 +43,7 @@ class MemoryArena
 	 * returns a pointer to the front of that space.
 	 */
 	template <typename T>
-	T* alloc(size_t count) {
+	T* _alloc(size_t count) {
 		const auto needed_bytes = sizeof(T) * count;
 		const auto available_bytes = chunks.back().size - chunks.back().used;
 
@@ -80,11 +80,37 @@ public:
 
 
 	/**
-	 * Allocates a single item of type T.
+	 * Allocates space for a single element of type T and returns a
+	 * raw pointer to that space.
 	 */
 	template <typename T>
-	T* alloc_single() {
-		return alloc(1);
+	T* alloc() {
+		return _alloc<T>(1);
+	}
+
+
+	/**
+	 * Allocates space for a single element of type T, initializes it with
+	 * init, and returns a raw pointer to that space.
+	 */
+	template <typename T>
+	T* alloc(const T& init) {
+		auto ptr = _alloc<T>(1);
+		*ptr = init;
+		return ptr;
+	}
+
+
+	/**
+	 * Allocates enough space for count elements of type T, and returns
+	 * a Slice to that space.
+	 */
+	template <typename T>
+	Slice<T> alloc_array(size_t count) {
+		if (count <= 0)
+			return Slice<T>();
+
+		return Slice<T>(_alloc<T>(count), count);
 	}
 
 
@@ -98,7 +124,7 @@ public:
 		if (size <= 0)
 			return Slice<T>();
 
-		auto ptr = alloc<T>(size);
+		auto ptr = _alloc<T>(size);
 
 		for (size_t i = 0; i < size; ++i) {
 			ptr[i] = *begin;

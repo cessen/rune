@@ -93,7 +93,7 @@ public:
 
 
 	AST parse() {
-		ast.root = std::unique_ptr<NamespaceNode>(new NamespaceNode());
+		ast.root = ast.store.alloc<NamespaceNode>();
 		std::vector<NamespaceNode*> namespaces;
 		std::vector<DeclNode*> declarations;
 
@@ -110,7 +110,7 @@ public:
 				case K_VAR:
 				case K_FN:
 				case K_STRUCT: {
-					declarations.push_back(parse_declaration().release());
+					declarations.push_back(parse_declaration());
 					break;
 				}
 
@@ -235,7 +235,7 @@ private:
 	// Parses a single full statement.  In general this means a declaration
 	// or an expression, but also includes things like return and break
 	// statements.
-	std::unique_ptr<StatementNode> parse_statement() {
+	StatementNode* parse_statement() {
 		switch (token_iter->type) {
 				// Return statement
 			case K_RETURN: {
@@ -277,8 +277,8 @@ private:
 	// Expression
 	// Parses the largest number of tokens that result in a single valid
 	// expression.
-	std::unique_ptr<ExprNode> parse_expression() {
-		std::unique_ptr<ExprNode> lhs;
+	ExprNode* parse_expression() {
+		ExprNode* lhs;
 
 		// LHS
 		lhs = parse_primary_expression();
@@ -305,7 +305,7 @@ private:
 	// Primary expression
 	// Parses the fewest number of tokens that result in a single
 	// valid expression (while keeping surrounding code valid).
-	std::unique_ptr<ExprNode> parse_primary_expression() {
+	ExprNode* parse_primary_expression() {
 		switch (token_iter->type) {
 			case LPAREN:
 				return parse_scope();
@@ -341,7 +341,7 @@ private:
 				}
 				// Token is variable
 				else if (token_is_variable(*token_iter)) {
-					std::unique_ptr<ExprNode> var = std::unique_ptr<VariableNode>(new VariableNode {token_iter->text});
+					ExprNode* var = ast.store.alloc<VariableNode>(VariableNode {token_iter->text});
 					++token_iter;
 					return var;
 				}
@@ -361,7 +361,7 @@ private:
 
 
 	// Declaration
-	std::unique_ptr<DeclNode> parse_declaration() {
+	DeclNode* parse_declaration() {
 		switch (token_iter->type) {
 			case K_CONST:
 				return parse_constant_decl();
@@ -387,8 +387,8 @@ private:
 
 
 	// Constant
-	std::unique_ptr<ConstantDeclNode> parse_constant_decl() {
-		auto node = std::unique_ptr<ConstantDeclNode>(new ConstantDeclNode);
+	ConstantDeclNode* parse_constant_decl() {
+		auto node = ast.store.alloc<ConstantDeclNode>();
 
 		++token_iter;
 		skip_comments_and_newlines();
@@ -414,7 +414,7 @@ private:
 			if (token_iter->type == IDENTIFIER) {
 				// TODO
 				++token_iter;
-				node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+				node->type = ast.store.alloc<TypeExprNode>();
 			} else {
 				// Error
 				std::ostringstream msg;
@@ -424,7 +424,7 @@ private:
 		} else {
 			// Unknown type
 			// TODO
-			node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+			node->type = ast.store.alloc<TypeExprNode>();
 		}
 
 		skip_comments();
@@ -472,8 +472,8 @@ private:
 
 
 	// Variable
-	std::unique_ptr<VariableDeclNode> parse_variable_decl() {
-		auto node = std::unique_ptr<VariableDeclNode>(new VariableDeclNode);
+	VariableDeclNode* parse_variable_decl() {
+		auto node = ast.store.alloc<VariableDeclNode>();
 
 		if (token_iter->type == K_LET)
 			node->mut = false;
@@ -511,7 +511,7 @@ private:
 			if (token_iter->type == IDENTIFIER) {
 				// TODO
 				++token_iter;
-				node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+				node->type = ast.store.alloc<TypeExprNode>();
 			} else {
 				// Error
 				std::ostringstream msg;
@@ -521,7 +521,7 @@ private:
 		} else {
 			// Unknown type
 			// TODO
-			node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+			node->type = ast.store.alloc<TypeExprNode>();
 		}
 
 		skip_comments();
@@ -535,7 +535,7 @@ private:
 		} else {
 			// No initializer
 			// TODO
-			node->initializer = std::unique_ptr<ExprNode>(new ExprNode());
+			node->initializer = ast.store.alloc<ExprNode>();
 		}
 
 		skip_comments();
@@ -552,10 +552,10 @@ private:
 
 
 	// Function definition
-	std::unique_ptr<ConstantDeclNode> parse_func_definition() {
+	ConstantDeclNode* parse_func_definition() {
 		// A function is really just a constant with a function
 		// literal assigned to it.
-		auto node = std::unique_ptr<ConstantDeclNode>(new ConstantDeclNode);
+		auto node = ast.store.alloc<ConstantDeclNode>();
 
 		// Function name
 		++token_iter;
@@ -583,15 +583,16 @@ private:
 		node->initializer = parse_function_literal(false);
 
 		// TODO: type
-		node->type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+		node->type = ast.store.alloc<TypeExprNode>();
 
 		return node;
 	}
 
 
 	// Standard function call syntax
-	std::unique_ptr<FuncCallNode> parse_standard_func_call() {
-		auto node = std::unique_ptr<FuncCallNode>(new FuncCallNode());
+	FuncCallNode* parse_standard_func_call() {
+		auto node = ast.store.alloc<FuncCallNode>();
+		std::vector<ExprNode*> parameters;
 
 		// Get function name
 		if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
@@ -625,7 +626,7 @@ private:
 		while (true) {
 			skip_comments_and_newlines();
 
-			node->parameters.push_back(parse_expression());
+			parameters.push_back(parse_expression());
 
 			skip_comments_and_newlines();
 
@@ -641,13 +642,15 @@ private:
 			++token_iter;
 		}
 
+		node->parameters = ast.store.alloc_from_iters(parameters.begin(), parameters.end());
+
 		return node;
 	}
 
 
 	// Unary function call syntax
-	std::unique_ptr<FuncCallNode> parse_unary_func_call() {
-		auto node = std::unique_ptr<FuncCallNode>(new FuncCallNode());
+	FuncCallNode* parse_unary_func_call() {
+		auto node = ast.store.alloc<FuncCallNode>();
 
 		// Get function name
 		if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
@@ -661,16 +664,17 @@ private:
 		++token_iter;
 
 		// Next primary expression should be the argument
-		node->parameters.push_back(parse_primary_expression());
+		node->parameters = ast.store.alloc_array<ExprNode*>(1);
+		node->parameters[0] = parse_primary_expression();
 
 		return node;
 	}
 
 
 	// Binary infix function call syntax
-	std::unique_ptr<ExprNode> parse_binary_func_call(std::unique_ptr<ExprNode> lhs, int lhs_prec) {
-		auto node = std::unique_ptr<FuncCallNode>(new FuncCallNode());
-		std::unique_ptr<ExprNode> rhs;
+	ExprNode* parse_binary_func_call(ExprNode* lhs, int lhs_prec) {
+		auto node = ast.store.alloc<FuncCallNode>();
+		ExprNode* rhs;
 
 		if (!token_is_const_function(*token_iter)) {
 			// Error
@@ -692,8 +696,9 @@ private:
 		// Handle precedence
 		while (true) {
 			if (token_is_terminator(*token_iter)) {
-				node->parameters.push_back(std::move(lhs));
-				node->parameters.push_back(std::move(rhs));
+				node->parameters = ast.store.alloc_array<ExprNode*>(2);
+				node->parameters[0] = lhs;
+				node->parameters[1] = rhs;
 				break;
 			} else if (lhs_prec >= my_prec) {
 				token_iter = pre_rhs;
@@ -702,8 +707,9 @@ private:
 				if (get_op_prec(token_iter->text) > my_prec) {
 					rhs = parse_binary_func_call(std::move(rhs), my_prec);
 				} else {
-					node->parameters.push_back(std::move(lhs));
-					node->parameters.push_back(std::move(rhs));
+					node->parameters = ast.store.alloc_array<ExprNode*>(2);
+					node->parameters[0] = lhs;
+					node->parameters[1] = rhs;
 					return parse_binary_func_call(std::move(node), lhs_prec);
 				}
 			} else {
@@ -714,13 +720,14 @@ private:
 			}
 		}
 
-		return std::unique_ptr<ExprNode>(std::move(node));;
+		return node;
 	}
 
 
 	// Scope
-	std::unique_ptr<ScopeNode> parse_scope() {
-		auto node = std::unique_ptr<ScopeNode>(new ScopeNode());
+	ScopeNode* parse_scope() {
+		auto node = ast.store.alloc<ScopeNode>();
+		std::vector<StatementNode*> statements;
 
 		// Open scope
 		if (token_iter->type != LPAREN) {
@@ -744,9 +751,11 @@ private:
 			}
 			// Should be an expression
 			else {
-				node->statements.push_back(parse_statement());
+				statements.push_back(parse_statement());
 			}
 		}
+
+		node->statements = ast.store.alloc_from_iters(statements.begin(), statements.end());
 
 		// Pop this scope
 		scope_stack.pop_scope();
@@ -761,7 +770,7 @@ private:
 	// LITERALS
 	////////////////////////////////////////////////////////
 
-	std::unique_ptr<LiteralNode> parse_literal() {
+	LiteralNode* parse_literal() {
 		switch (token_iter->type) {
 			case INTEGER_LIT:
 			case FLOAT_LIT:
@@ -789,8 +798,9 @@ private:
 	}
 
 
-	std::unique_ptr<FuncLiteralNode> parse_function_literal(bool has_fn = true) {
-		auto node = std::unique_ptr<FuncLiteralNode>(new FuncLiteralNode);
+	FuncLiteralNode* parse_function_literal(bool has_fn = true) {
+		auto node = ast.store.alloc<FuncLiteralNode>();
+		std::vector<NameTypePair> parameters;
 
 		if (has_fn) {
 			if (token_iter->type == K_FN) {
@@ -845,7 +855,7 @@ private:
 			++token_iter;
 			skip_comments_and_newlines();
 			if (token_iter->type == IDENTIFIER) {
-				node->parameters.push_back(NameTypePair {name, std::unique_ptr<TypeExprNode>(new TypeExprNode())});
+				parameters.push_back(NameTypePair {name, ast.store.alloc<TypeExprNode>()});
 
 				// Push onto scope
 				if (!scope_stack.push_symbol(name, SymbolType::VARIABLE)) {
@@ -876,6 +886,8 @@ private:
 			}
 		}
 
+		node->parameters = ast.store.alloc_from_iters(parameters.begin(), parameters.end());
+
 		// -> (optional return type)
 		++token_iter;
 		skip_comments_and_newlines();
@@ -885,7 +897,7 @@ private:
 			++token_iter;
 			skip_comments_and_newlines();
 			if (token_iter->type == IDENTIFIER)
-				node->return_type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+				node->return_type = ast.store.alloc<TypeExprNode>();
 			else {
 				// Error
 				std::ostringstream msg;
@@ -894,7 +906,7 @@ private:
 			}
 		} else {
 			// TODO: empty return type
-			node->return_type = std::unique_ptr<TypeExprNode>(new TypeExprNode());
+			node->return_type = ast.store.alloc<TypeExprNode>();
 		}
 
 		// Function body
