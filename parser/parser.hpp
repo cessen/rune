@@ -130,14 +130,20 @@ private:
 	// Helper Methods
 	////////////////////
 
-	void skip_comments() {
-		while (token_iter->type == COMMENT || token_iter->type == DOC_COMMENT)
+	void skip_docstrings() {
+		while (token_iter->type == DOC_STRING)
 			++token_iter;
 	}
 
 
-	void skip_comments_and_newlines() {
-		while (token_iter->type == COMMENT || token_iter->type == DOC_COMMENT || token_iter->type == NEWLINE)
+	void skip_newlines() {
+		while (token_iter->type == NEWLINE)
+			++token_iter;
+	}
+
+
+	void skip_docstrings_and_newlines() {
+		while (token_iter->type == DOC_STRING || token_iter->type == NEWLINE)
 			++token_iter;
 	}
 

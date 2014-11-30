@@ -39,7 +39,7 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 	if (has_fn) {
 		if (token_iter->type == K_FN) {
 			++token_iter;
-			skip_comments_and_newlines();
+			skip_newlines();
 		} else {
 			// Error
 			std::ostringstream msg;
@@ -61,7 +61,7 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 	while (true) {
 		// Parameter name
 		++token_iter;
-		skip_comments_and_newlines();
+		skip_newlines();
 		StringSlice name;
 		if (token_iter->type == IDENTIFIER)
 			name = token_iter->text;
@@ -76,7 +76,7 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 
 		// Colon
 		++token_iter;
-		skip_comments_and_newlines();
+		skip_newlines();
 		if (token_iter->type != COLON) {
 			// Error
 			std::ostringstream msg;
@@ -87,7 +87,7 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 		// Parameter type
 		// TODO: types aren't just names, need to evaluate full type expression here.
 		++token_iter;
-		skip_comments_and_newlines();
+		skip_newlines();
 		if (token_iter->type == IDENTIFIER) {
 			parameters.push_back(NameTypePair {name, ast.store.alloc<TypeExprNode>()});
 
@@ -107,7 +107,7 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 
 		// Either a comma or closing square bracket
 		++token_iter;
-		skip_comments_and_newlines();
+		skip_newlines();
 		if (token_iter->type == COMMA)
 			continue;
 		else if (token_iter->type == RSQUARE)
@@ -124,12 +124,12 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 
 	// -> (optional return type)
 	++token_iter;
-	skip_comments_and_newlines();
+	skip_newlines();
 	if (token_iter->type == OPERATOR && token_iter->text == "->") {
 		// Return type
 		// TODO: types aren't just names, need to evaluate full type expression here.
 		++token_iter;
-		skip_comments_and_newlines();
+		skip_newlines();
 		if (token_iter->type == IDENTIFIER)
 			node->return_type = ast.store.alloc<TypeExprNode>();
 		else {
@@ -145,7 +145,7 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 
 	// Function body
 	++token_iter;
-	skip_comments_and_newlines();
+	skip_newlines();
 	if (token_iter->type == LPAREN) {
 		node->body = parse_scope();
 	} else {

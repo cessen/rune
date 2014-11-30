@@ -19,7 +19,6 @@ FuncCallNode* Parser::parse_standard_func_call()
 
 	// [
 	++token_iter;
-	skip_comments();
 	if (token_iter->type != LSQUARE) {
 		// Error
 		std::ostringstream msg;
@@ -28,7 +27,7 @@ FuncCallNode* Parser::parse_standard_func_call()
 	}
 	++token_iter;
 
-	skip_comments_and_newlines();
+	skip_newlines();
 
 	// ]?
 	if (token_iter->type == RSQUARE) {
@@ -37,11 +36,11 @@ FuncCallNode* Parser::parse_standard_func_call()
 	}
 
 	while (true) {
-		skip_comments_and_newlines();
+		skip_newlines();
 
 		parameters.push_back(parse_expression());
 
-		skip_comments_and_newlines();
+		skip_newlines();
 
 		// , or ]
 		if (token_iter->type == COMMA) {

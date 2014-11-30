@@ -34,7 +34,7 @@ ConstantDeclNode* Parser::parse_constant_decl()
 	auto node = ast.store.alloc<ConstantDeclNode>();
 
 	++token_iter;
-	skip_comments_and_newlines();
+	skip_newlines();
 
 	// Get name
 	if (token_iter->type == IDENTIFIER) {
@@ -47,12 +47,11 @@ ConstantDeclNode* Parser::parse_constant_decl()
 	}
 
 	++token_iter;
-	skip_comments();
 
 	// Optional ":"
 	if (token_iter->type == COLON) {
 		++token_iter;
-		skip_comments_and_newlines();
+		skip_newlines();
 
 		if (token_iter->type == IDENTIFIER) {
 			// TODO
@@ -70,8 +69,6 @@ ConstantDeclNode* Parser::parse_constant_decl()
 		node->type = ast.store.alloc<TypeExprNode>();
 	}
 
-	skip_comments();
-
 	// Initializer is required for constants
 	if (token_iter->type != OPERATOR || token_iter->text != "=") {
 		// Error
@@ -81,7 +78,7 @@ ConstantDeclNode* Parser::parse_constant_decl()
 	}
 
 	++token_iter;
-	skip_comments_and_newlines();
+	skip_newlines();
 	if (token_iter->type == K_FN) {
 		if (!scope_stack.push_symbol(node->name, SymbolType::CONST_FUNCTION)) {
 			// Error
@@ -100,8 +97,6 @@ ConstantDeclNode* Parser::parse_constant_decl()
 
 	// Get initializer
 	node->initializer = parse_expression();
-
-	skip_comments();
 
 	if (!token_is_terminator(*token_iter)) {
 		// Error
@@ -126,7 +121,7 @@ VariableDeclNode* Parser::parse_variable_decl()
 
 	// Variable name
 	++token_iter;
-	skip_comments_and_newlines();
+	skip_newlines();
 	if (token_iter->type == IDENTIFIER) {
 		node->name = token_iter->text;
 	} else {
@@ -145,12 +140,11 @@ VariableDeclNode* Parser::parse_variable_decl()
 	}
 
 	++token_iter;
-	skip_comments();
 
 	// Optional ":"
 	if (token_iter->type == COLON) {
 		++token_iter;
-		skip_comments_and_newlines();
+		skip_newlines();
 
 		if (token_iter->type == IDENTIFIER) {
 			// TODO
@@ -168,21 +162,15 @@ VariableDeclNode* Parser::parse_variable_decl()
 		node->type = ast.store.alloc<TypeExprNode>();
 	}
 
-	skip_comments();
-
 	// Optional "="
 	if (token_iter->type == OPERATOR && token_iter->text == "=") {
 		++token_iter;
-		skip_comments();
-
 		node->initializer = parse_expression();
 	} else {
 		// No initializer
 		// TODO
 		node->initializer = ast.store.alloc<ExprNode>();
 	}
-
-	skip_comments();
 
 	if (!token_is_terminator(*token_iter)) {
 		// Error
@@ -204,7 +192,7 @@ ConstantDeclNode* Parser::parse_func_definition()
 
 	// Function name
 	++token_iter;
-	skip_comments_and_newlines();
+	skip_newlines();
 	if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
 		node->name = token_iter->text;
 	} else {
@@ -224,7 +212,7 @@ ConstantDeclNode* Parser::parse_func_definition()
 
 	// Function definition
 	++token_iter;
-	skip_comments_and_newlines();
+	skip_newlines();
 	node->initializer = parse_function_literal(false);
 
 	// TODO: type

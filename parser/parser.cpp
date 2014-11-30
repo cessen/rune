@@ -58,7 +58,7 @@ AST Parser::parse()
 	// Iterate over the tokens and collect all top-level
 	// declarations and namespaces
 	while (token_iter < end) {
-		skip_comments_and_newlines();
+		skip_docstrings_and_newlines();
 
 		// Call the appropriate parsing function for the token type
 		switch (token_iter->type) {

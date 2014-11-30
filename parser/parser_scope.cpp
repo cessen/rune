@@ -19,7 +19,7 @@ ScopeNode* Parser::parse_scope()
 	scope_stack.push_scope();
 
 	while (true) {
-		skip_comments_and_newlines();
+		skip_newlines();
 
 		// Close scope?
 		if (token_iter->type == RPAREN) {

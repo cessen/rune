@@ -21,9 +21,8 @@ enum TokenType {
     STRING_LIT,
     RAW_STRING_LIT,
 
-    // Comments
-    COMMENT,
-    DOC_COMMENT,
+    // Documentation string
+    DOC_STRING,
 
     // Catch-all for valid but as-of-yet unused symbols
     RESERVED,

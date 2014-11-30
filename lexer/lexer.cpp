@@ -16,6 +16,7 @@ class Lexer
 	unsigned int line_number = 0;
 	unsigned int column_number = 0;
 	std::string cur_c = "";
+	TokenType last_token_type = UNKNOWN;
 	Token token;
 
 	std::vector<bool> generic_stack = {false};
@@ -45,7 +46,8 @@ start_over:
 
 		// If it's a comment
 		if (is_comment_char(cur_c)) {
-			lex_comment();
+			if (!lex_comment())
+				goto start_over;
 		}
 
 		// If it's a string literal
@@ -174,6 +176,9 @@ start_over:
 				}
 			}
 
+			if (last_token_type == NEWLINE)
+				goto start_over;
+
 			token.type = NEWLINE;
 		}
 
@@ -190,6 +195,7 @@ start_over:
 			token.type = LEX_EOF;
 		}
 
+		last_token_type = token.type;
 		return token;
 	}
 
@@ -300,7 +306,9 @@ private:
 	}
 
 
-	void lex_comment() {
+	bool lex_comment() {
+		// Returns if it was a doc comment or not, so that non-doc comments
+		// can be skipped;
 		bool is_doc = false;
 		if (cur_c == "#") {
 			next_char();
@@ -319,11 +327,11 @@ private:
 
 			token.text.end = str_iter;
 			if (is_doc) {
-				token.type = DOC_COMMENT;
-			} else {
-				token.type = COMMENT;
+				token.type = DOC_STRING;
 			}
 		}
+
+		return is_doc;
 	}
 
 
