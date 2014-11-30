@@ -145,6 +145,7 @@ static inline bool is_reserved_char(const std::string& s)
 		case ';':
 		case '.':
 		case ',':
+		case '@':
 		case '$':
 		case '%':
 			return true;
@@ -177,7 +178,6 @@ static inline bool is_op_char(const std::string& s)
 		case '<':
 		case '>':
 		case '?':
-		case '@':
 		case '~':
 			return true;
 		default:

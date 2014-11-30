@@ -38,6 +38,7 @@ enum TokenType {
     RCURLY,
     LGENERIC,
     RGENERIC,
+    AT,
     COMMA,
     PERIOD,
     COLON,

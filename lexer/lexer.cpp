@@ -123,6 +123,10 @@ start_over:
 					pop_generic(false);
 					next_char();
 					break;
+				case '@':
+					token.type = AT;
+					next_char();
+					break;
 				case ',':
 					token.type = COMMA;
 					next_char();
