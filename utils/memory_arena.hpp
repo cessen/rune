@@ -73,15 +73,14 @@ public:
 
 
 	// No copying, only moving
-	MemoryArena(const MemoryArena& other) = delete;
+	MemoryArena(MemoryArena& other) = delete;
 	MemoryArena& operator=(MemoryArena& other) = delete;
 	MemoryArena(MemoryArena&& other) {
 		chunks = std::move(other.chunks);
-		other.chunks.clear();
 	}
 	MemoryArena& operator=(MemoryArena&& other) {
 		chunks = std::move(other.chunks);
-		other.chunks.clear();
+		return *this;
 	}
 
 

@@ -1,11 +1,11 @@
-const a: i32 = 42
-let b: i32 = 7
-var c: i32 = 31
+#const a: i32 = 42
+let b: i32 #= 7
+var c: i32 #= 31
 
 const foo = fn [x: i32, y: i32] -> i32 (
-    return x / y
+    #return x / y
 )
 
 fn main[] (
-    print["%d, %d, %d\n", a+b, b+c, foo[a, b]]
+    #print["%d, %d, %d\n", a+b, b+c, foo[a, b]]
 )

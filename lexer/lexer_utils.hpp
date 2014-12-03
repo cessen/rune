@@ -27,13 +27,13 @@ static inline void cur_utf8(std::string *cur_c, const std::string::const_iterato
 {
 	assert(cur_c != nullptr);
 
-	const unsigned char* c = reinterpret_cast<const unsigned char*>(&(*in));
-
 	// Clear out cur_c
 	cur_c->clear();
 
 	if (in == end)
 		return;
+
+	const unsigned char* c = reinterpret_cast<const unsigned char*>(&(*in));
 
 	// Determine the length of the encoded codepoint
 	int len = 0;
