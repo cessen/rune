@@ -72,9 +72,22 @@ public:
 	}
 
 
-	// No copying, only moving
+	// No copying, only moving, but...
+	// HACK: MSVC is stupid, so we're making
+	// the copy-constructors behave like
+	// move constructors.
+#ifdef _MSC_VER
+	MemoryArena(MemoryArena& other) {
+		chunks = std::move(other.chunks);
+	}
+	MemoryArena& operator=(MemoryArena& other) {
+		chunks = std::move(other.chunks);
+		return *this;
+	}
+#else
 	MemoryArena(MemoryArena& other) = delete;
 	MemoryArena& operator=(MemoryArena& other) = delete;
+#endif
 	MemoryArena(MemoryArena&& other) {
 		chunks = std::move(other.chunks);
 	}

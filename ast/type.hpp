@@ -50,6 +50,8 @@ struct Void_T: Type {
 
 // Base class
 struct Atom_T: Type {
+	StringSlice value;
+
 	virtual TypeClass type_class() {
 		return TypeClass::Atom;
 	}
