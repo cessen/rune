@@ -8,7 +8,7 @@
 class utf8_parse_error: std::exception
 {
 public:
-	virtual const char* what() const noexcept {
+	virtual const char* what() const {
 		return "Invalid UTF8 sequence.";
 	}
 };
@@ -37,15 +37,15 @@ static inline void cur_utf8(std::string *cur_c, const std::string::const_iterato
 
 	// Determine the length of the encoded codepoint
 	int len = 0;
-	if (c[0] < 0b10000000)
+	if (c[0] < 0x80)
 		len = 1;
-	else if (c[0] < 0b11000000)
+	else if (c[0] < 0xC0)
 		throw utf8_parse_error {}; // Malformed: continuation byte as first byte
-	else if (c[0] < 0b11100000)
+	else if (c[0] < 0xE0)
 		len = 2;
-	else if (c[0] < 0b11110000)
+	else if (c[0] < 0xF0)
 		len = 3;
-	else if (c[0] < 0b11111000)
+	else if (c[0] < 0xF8)
 		len = 4;
 	else
 		throw utf8_parse_error {}; // Malformed: current utf8 standard only allows up to four bytes
@@ -57,7 +57,7 @@ static inline void cur_utf8(std::string *cur_c, const std::string::const_iterato
 	// making sure they're well-formed UTF8
 	cur_c->push_back(c[0]);
 	for (int i = 1; i < len; ++i) {
-		if ((c[i] & 0b11000000) != 0b10000000)
+		if ((c[i] & 0xC0) != 0x80)
 			throw utf8_parse_error {}; // Malformed: not a continuation byte
 
 		cur_c->push_back(c[i]);

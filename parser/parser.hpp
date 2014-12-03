@@ -41,7 +41,7 @@ public:
 		init_message(message, len);
 	}
 
-	virtual const char* what() const noexcept {
+	virtual const char* what() const {
 		return error_message;
 	}
 

@@ -10,8 +10,8 @@
  * A non-owning view into part of a std::string.
  */
 struct StringSlice {
-	std::string::const_iterator iter {nullptr}; // Iterator to the beginning of the string slice
-	std::string::const_iterator end {nullptr}; // Iterator to the end of the string slice
+	std::string::const_iterator iter; // Iterator to the beginning of the string slice
+	std::string::const_iterator end {iter}; // Iterator to the end of the string slice
 
 	StringSlice()
 	{}
