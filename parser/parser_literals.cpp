@@ -138,13 +138,13 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 			msg << "Invalid type name for return type: '" << token_iter->text << "'.";
 			parsing_error(*token_iter, msg.str());
 		}
+		++token_iter;
 	} else {
 		// TODO: empty return type
 		node->return_type = ast.store.alloc<TypeExprNode>();
 	}
 
 	// Function body
-	++token_iter;
 	skip_newlines();
 	if (token_iter->type == LPAREN) {
 		node->body = parse_scope();
