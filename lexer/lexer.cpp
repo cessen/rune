@@ -374,8 +374,8 @@ void check_for_keyword(Token& token)
 	// Handle declarations
 	else if (token.text == "const") {
 		token.type = K_CONST;
-	} else if (token.text == "let") {
-		token.type = K_LET;
+	} else if (token.text == "val") {
+		token.type = K_VAL;
 	} else if (token.text == "var") {
 		token.type = K_VAR;
 	}

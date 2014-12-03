@@ -8,7 +8,7 @@ DeclNode* Parser::parse_declaration()
 		case K_CONST:
 			return parse_constant_decl();
 
-		case K_LET:
+		case K_VAL:
 		case K_VAR: {
 			return parse_variable_decl();
 		}
@@ -114,7 +114,7 @@ VariableDeclNode* Parser::parse_variable_decl()
 {
 	auto node = ast.store.alloc<VariableDeclNode>();
 
-	if (token_iter->type == K_LET)
+	if (token_iter->type == K_VAL)
 		node->mut = false;
 	else if (token_iter->type == K_VAR)
 		node->mut = true;

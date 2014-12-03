@@ -49,7 +49,7 @@ enum TokenType {
     K_UNSAFE,
 
     K_CONST,
-    K_LET,
+    K_VAL,
     K_VAR,
 
     K_MUT,

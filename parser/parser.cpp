@@ -64,7 +64,7 @@ AST Parser::parse()
 		switch (token_iter->type) {
 				// Declarations
 			case K_CONST:
-			case K_LET:
+			case K_VAL:
 			case K_VAR:
 			case K_FN:
 			case K_STRUCT: {

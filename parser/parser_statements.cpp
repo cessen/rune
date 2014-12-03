@@ -15,7 +15,7 @@ StatementNode* Parser::parse_statement()
 
 		// Declaration
 		case K_CONST:
-		case K_LET:
+		case K_VAL:
 		case K_VAR:
 		case K_FN:
 		case K_STRUCT: {
