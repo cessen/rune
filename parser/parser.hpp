@@ -45,13 +45,13 @@ public:
 #ifdef _MSC_VER
 	virtual const char* what() const {
 #else
-    virtual const char* what() const noexcept {
+	virtual const char* what() const noexcept {
 #endif
 		return error_message;
 	}
 
 
-    
+
 
 private:
 	void init_message(const char* message, int message_length) {
