@@ -41,9 +41,17 @@ public:
 		init_message(message, len);
 	}
 
+// HACK: MSVC 2012/2013 doesn't support `noexcept`
+#ifdef _MSC_VER
 	virtual const char* what() const {
+#else
+    virtual const char* what() const noexcept {
+#endif
 		return error_message;
 	}
+
+
+    
 
 private:
 	void init_message(const char* message, int message_length) {

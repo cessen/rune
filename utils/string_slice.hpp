@@ -17,7 +17,7 @@ struct StringSlice {
 	StringSlice()
 	{}
 
-	StringSlice(std::string::const_iterator begin, std::string::const_iterator end): iter {begin}, length {std::distance(begin, end)}
+	StringSlice(std::string::const_iterator begin, std::string::const_iterator end): iter {begin}, length {static_cast<size_t>(std::distance(begin, end))}
 	{}
 
 	// iter must be set before calling this
