@@ -1,8 +1,13 @@
+# Rune Language Design Document
+
 Rune is a toy programming language that is being developed largely for the sake of fun and learning.  But hopefully it will also turn into something interesting, with at least one or two worthwhile ideas in it.
 
 This document is an attempt to document the current language design.  It may not always be 100% up-to-date, but it should be reasonably representative.
 
-# Brackets, braces, and parenthesis
+
+
+Brackets, braces, and parenthesis
+---------------------------------
 
 The use of braces etc. in Rune are significantly different than in C-style languages.  The goal is to have each type of brace--as much as possible--represent a set of _related_ concepts.
 
@@ -18,7 +23,8 @@ This non-standard approach means that code may be a little tricky to read at fir
 
 
 
-# Comments
+Comments
+--------
 
     # This is a comment.  All comments are
     # single-line comments.  They start
@@ -39,7 +45,8 @@ This non-standard approach means that code may be a little tricky to read at fir
 
 
 
-# Declarations
+Declarations
+------------
 
 There are four kinds of declarations in Rune:
 
@@ -74,7 +81,8 @@ In many cases, the type can be inferred without an explicit type specification.
 
 
 
-# Built-in types
+Built-in Types
+--------------
 
 There are several built-in types in Rune.
 
@@ -112,7 +120,8 @@ All other data types in Rune are built by putting these types together in intere
 
 
 
-# Expressions
+Expressions
+-----------
 
 Expressions are pieces of executable code that (typically) evaluate to some kind of data.  Nearly anything that is not a declaration, type definition, or compiler directive is an expression.  An example of a simple expression:
 
@@ -137,7 +146,8 @@ You can group sub-expressions using parenthesis to force evaluation precidence:
 
 
 
-# Lexical scope
+Lexical scope
+-------------
 
 Parenthesis also determine lexical scope:
 
@@ -148,7 +158,8 @@ Parenthesis also determine lexical scope:
 
 
 
-# Functions
+Functions
+---------
 
 Functions are defined with function literals.  A function literal looks like this:
 
@@ -186,7 +197,8 @@ There is, however, one thing that the syntactic sugar version can do that the `c
 
 
 
-# Function Call Sugar
+Function Call Sugar
+-------------------
 
 In addition to the standard function call syntax shown above, there are three other function call syntaxes:
 
@@ -207,14 +219,84 @@ These calling syntaxes are just syntactic sugar for the standard syntax, and (im
 
 
 
-# Overloading
+Compound Types
+--------------
 
-Rune allows compile-time constants to be overloaded on type.  Note that this is not limited just to functions, but works for any compile-time constant.  However, you cannot overload a name on both function and non-function values.
+Rune supports several ways of composing types together to create other types.  But to understand how to utlize them, you need to understand a bit of how Rune thinks about types and names.
 
-    # Overloading function constants
-    const foo = fn [a: i32] -> i32 (...)
-    const foo = fn [a: f32] -> f32 (...)
+
+### Type Declarations ###
+
+Much like the distinction between a variable and a literal, Rune makes a distinction between named types and type "literals".  To create a new named type, you use the type keyword:
+
+    type Meters = f32
+
+This declares a new type `Meters` that is structurally identical to a 32-bit float.  However, note that `Meters` is considered a distinct type from `f32`.  `type` doesn't create type aliases, it creates completely new types.  This is important because, for example, if we also defined a `Liters` type from `f32` we wouldn't want `Meters` and `Liters` to be implicitly interchangeable.
+
+If you _do_ want to convert between types, you can do so explicitly by using the `as` keyword:
     
-    # Overloading non-function constants
-    const bar: i32 = 5
-    const bar: f32 = 5.0
+    val m: Meters = 5.0
+    val l: Liters = m as Liters
+
+
+### Tuples ###
+
+The simplest compound type in Rune is the tuple.  A tuple type is written like this:
+
+    {i32, i32, f64}
+
+As with any other type, you can either use tuple types directly or create new types out of them with the `type` keyword:
+
+    type Foo = {i32, i32, f64}
+    
+    var a: {i32, i32, f64}
+    var b: Foo
+
+A tuple literal looks like this:
+
+    {42, 53, 6.4}
+
+A tuple literal from a named tuple type looks like this:
+
+    Foo{42, 53, 6.4}
+
+Literals can be used to initialze or assign variables or constants with tuple types:
+
+    var a: {i32, i32, f64}
+    var b: Foo
+    
+    a = {42, 53, 6.4}
+    b = Foo{42, 53, 6.4}
+
+
+### Structs ###
+
+Structs are almost identical to tuples, except that their fields are named:
+
+    struct {
+        x: i32,
+        y: i32,
+        baz: f32
+    }
+
+    type Bar = struct {
+        x: i32,
+        y: i32,
+        baz: f32
+    }
+
+You can access a struct's fields using dot notation:
+
+    var a: Bar
+    
+    a.x = 42
+    a.y = a.x + 5
+    a.baz = 3.5
+
+Struct literals look like this:
+
+    # Un-named
+    struct{x=42, y=53, baz=6.4}
+    
+    # Named
+    Bar{x=42, y=53, baz=6.4}
