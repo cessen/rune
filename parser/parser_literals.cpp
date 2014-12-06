@@ -4,7 +4,12 @@
 LiteralNode* Parser::parse_literal()
 {
 	switch (token_iter->type) {
-		case INTEGER_LIT:
+		case INTEGER_LIT: {
+			auto node = ast.store.alloc<IntegerLiteralNode>();
+			node->text = token_iter->text;
+			++token_iter;
+			return node;
+		}
 		case FLOAT_LIT:
 		case STRING_LIT:
 		case RAW_STRING_LIT: {

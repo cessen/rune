@@ -221,6 +221,10 @@ struct EnumDeclNode: DeclNode {
 
 struct IntegerLiteralNode: LiteralNode {
 	StringSlice text;
+	virtual void print(int indent) {
+		print_indent(indent);
+		std::cout << text.to_string();
+	}
 };
 
 struct FloatLiteralNode: LiteralNode {
