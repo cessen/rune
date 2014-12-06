@@ -2137,7 +2137,8 @@ class ExceptionTranslatorRegistrar
 		virtual std::string translate() const {
 			try {
 				throw;
-			} catch (T& ex) {
+			}
+			catch (T& ex) {
 				return m_translateFunction(ex);
 			}
 		}
@@ -3117,14 +3118,16 @@ private:
 			if (c == ',') {
 				addPattern<TestSpec::NamePattern>();
 				addFilter();
-			} else if (c == '[') {
+			}
+			else if (c == '[') {
 				if (subString() == "exclude:")
 					m_exclusion = true;
 				else
 					addPattern<TestSpec::NamePattern>();
 				startNewMode(Tag, ++m_pos);
 			}
-		} else if (m_mode == QuotedName && c == '"')
+		}
+		else if (m_mode == QuotedName && c == '"')
 			addPattern<TestSpec::NamePattern>();
 		else if (m_mode == Tag && c == ']')
 			addPattern<TestSpec::TagPattern>();
@@ -3537,18 +3540,21 @@ public:
 
 			if (width == remainder.size()) {
 				spliceLine(indent, remainder, width);
-			} else if (remainder[width] == '\n') {
+			}
+			else if (remainder[width] == '\n') {
 				spliceLine(indent, remainder, width);
 				if (width <= 1 || remainder.size() != 1)
 					remainder = remainder.substr(1);
 				indent = _attr.indent;
-			} else {
+			}
+			else {
 				pos = remainder.find_last_of(wrappableChars, width);
 				if (pos != std::string::npos && pos > 0) {
 					spliceLine(indent, remainder, pos);
 					if (remainder[0] == ' ')
 						remainder = remainder.substr(1);
-				} else {
+				}
+				else {
 					spliceLine(indent, remainder, width-1);
 					lines.back() += "-";
 				}
@@ -3893,7 +3899,8 @@ struct Parser {
 			if (token.data[0] == '-') {
 				if (token.data.size() > 1 && token.data[1] == '-') {
 					token = Parser::Token(Parser::Token::LongOpt, token.data.substr(2));
-				} else {
+				}
+				else {
 					token = Parser::Token(Parser::Token::ShortOpt, token.data.substr(1));
 					if (token.data.size() > 1 && separators.find(token.data[1]) == std::string::npos) {
 						arg = "-" + token.data.substr(1);
@@ -4008,7 +4015,8 @@ class CommandLine
 				                       + "' already specified, now attempting to add '"
 				                       + optName + "'");
 			arg.longName = optName.substr(2);
-		} else if (Detail::startsWith(optName, "-"))
+		}
+		else if (Detail::startsWith(optName, "-"))
 			arg.shortNames.push_back(optName.substr(1));
 		else
 			throw std::logic_error("option must begin with - or --. Option was: '" + optName + "'");
@@ -4261,12 +4269,14 @@ public:
 								errors.push_back("Expected argument to option: " + token.data);
 							else
 								arg.boundField.set(config, tokens[++i].data);
-						} else {
+						}
+						else {
 							arg.boundField.setFlag(config);
 						}
 						break;
 					}
-				} catch (std::exception& ex) {
+				}
+				catch (std::exception& ex) {
 					errors.push_back(std::string(ex.what()) + "\n- while parsing: (" + arg.commands() + ")");
 				}
 			}
@@ -4603,18 +4613,21 @@ public:
 
 			if (width == remainder.size()) {
 				spliceLine(indent, remainder, width);
-			} else if (remainder[width] == '\n') {
+			}
+			else if (remainder[width] == '\n') {
 				spliceLine(indent, remainder, width);
 				if (width <= 1 || remainder.size() != 1)
 					remainder = remainder.substr(1);
 				indent = _attr.indent;
-			} else {
+			}
+			else {
 				pos = remainder.find_last_of(wrappableChars, width);
 				if (pos != std::string::npos && pos > 0) {
 					spliceLine(indent, remainder, pos);
 					if (remainder[0] == ' ')
 						remainder = remainder.substr(1);
-				} else {
+				}
+				else {
 					spliceLine(indent, remainder, width-1);
 					lines.back() += "-";
 				}
@@ -5398,8 +5411,10 @@ public:
 		do {
 			do {
 				runCurrentTest(redirectedCout, redirectedCerr);
-			} while (!m_testCaseTracker->isCompleted() && !aborting());
-		} while (getCurrentContext().advanceGeneratorsForCurrentTest() && !aborting());
+			}
+			while (!m_testCaseTracker->isCompleted() && !aborting());
+		}
+		while (getCurrentContext().advanceGeneratorsForCurrentTest() && !aborting());
 
 		Totals deltaTotals = m_totals.delta(prevTotals);
 		m_totals.testCases += deltaTotals.testCases;
@@ -5424,7 +5439,8 @@ private: // IResultCapture
 	virtual void assertionEnded(AssertionResult const& result) {
 		if (result.getResultType() == ResultWas::Ok) {
 			m_totals.assertions.passed++;
-		} else if (!result.isOk()) {
+		}
+		else if (!result.isOk()) {
 			m_totals.assertions.failed++;
 		}
 
@@ -5521,13 +5537,16 @@ private:
 				StreamRedirect coutRedir(std::cout, redirectedCout);
 				StreamRedirect cerrRedir(std::cerr, redirectedCerr);
 				m_activeTestCase->invoke();
-			} else {
+			}
+			else {
 				m_activeTestCase->invoke();
 			}
 			duration = timer.getElapsedSeconds();
-		} catch (TestFailureException&) {
+		}
+		catch (TestFailureException&) {
 			// This just means the test was aborted due to failure
-		} catch (...) {
+		}
+		catch (...) {
 			ResultBuilder exResult(m_lastAssertionInfo.macroName.c_str(),
 			                       m_lastAssertionInfo.lineInfo,
 			                       m_lastAssertionInfo.capturedExpression.c_str(),
@@ -5750,7 +5769,8 @@ int applyCommandLine(int argc, char* const argv[], OnUnusedOptions::DoWhat unuse
 		if (m_configData.showHelp)
 			showHelp(m_configData.processName);
 		m_config.reset();
-	} catch (std::exception& ex) {
+	}
+	catch (std::exception& ex) {
 		{
 			Colour colourGuard(Colour::Red);
 			std::cerr   << "\nError(s) in input:\n"
@@ -5789,7 +5809,8 @@ int run() {
 			return static_cast<int>(*listed);
 
 		return static_cast<int>(runner.runTests().assertions.failed);
-	} catch (std::exception& ex) {
+	}
+	catch (std::exception& ex) {
 		std::cerr << ex.what() << std::endl;
 		return (std::numeric_limits<int>::max)();
 	}
@@ -5854,7 +5875,8 @@ virtual void registerTest(TestCase const& testCase) {
 		m_functionsInOrder.push_back(testCase);
 		if (!testCase.isHidden())
 			m_nonHiddenFunctions.push_back(testCase);
-	} else {
+	}
+	else {
 		TestCase const& prev = *m_functions.find(testCase);
 		{
 			Colour colourGuard(Colour::Red);
@@ -6021,15 +6043,20 @@ virtual std::string translateActiveException() const {
 #else
 		throw;
 #endif
-	} catch (TestFailureException&) {
+	}
+	catch (TestFailureException&) {
 		throw;
-	} catch (std::exception& ex) {
+	}
+	catch (std::exception& ex) {
 		return ex.what();
-	} catch (std::string& msg) {
+	}
+	catch (std::string& msg) {
 		return msg;
-	} catch (const char* msg) {
+	}
+	catch (const char* msg) {
 		return msg;
-	} catch (...) {
+	}
+	catch (...) {
 		return tryTranslators(m_translators.begin());
 	}
 }
@@ -6040,7 +6067,8 @@ std::string tryTranslators(std::vector<const IExceptionTranslator*>::const_itera
 
 	try {
 		return (*it)->translate();
-	} catch (...) {
+	}
+	catch (...) {
 		return tryTranslators(it+1);
 	}
 }
@@ -6780,7 +6808,8 @@ for (std::size_t i = 0; i < _descOrTags.size(); ++i) {
 			inTag = true;
 		else
 			desc += c;
-	} else {
+	}
+	else {
 		if (c == ']') {
 			enforceNotReservedTag(tag, _lineInfo);
 
@@ -6790,7 +6819,8 @@ for (std::size_t i = 0; i < _descOrTags.size(); ++i) {
 			else
 				tags.insert(tag);
 			tag.clear();
-		} else
+		}
+		else
 			tag += c;
 	}
 }
@@ -7697,7 +7727,8 @@ else if (m_exprComponents.op != "!") {
 		return m_exprComponents.lhs + " " + m_exprComponents.op + " " + m_exprComponents.rhs;
 	else
 		return m_exprComponents.lhs + "\n" + m_exprComponents.op + "\n" + m_exprComponents.rhs;
-} else
+}
+else
 	return "{can't expand - use " + m_assertionInfo.macroName + "_FALSE( " + m_assertionInfo.capturedExpression.substr(1) + " ) instead of " + m_assertionInfo.macroName + "( " + m_assertionInfo.capturedExpression + " ) for better diagnostics}";
 }
 
@@ -7796,7 +7827,8 @@ RegistrarForTagAliases::RegistrarForTagAliases(char const* alias, char const* ta
 {
 try {
 	TagAliasRegistry::get().add(alias, tag, lineInfo);
-} catch (std::exception& ex) {
+}
+catch (std::exception& ex) {
 	Colour colourGuard(Colour::Red);
 	std::cerr << ex.what() << std::endl;
 	exit(1);
@@ -7928,7 +7960,8 @@ virtual void sectionStarting(SectionInfo const& sectionInfo) {
 		if (!m_rootSection)
 			m_rootSection = new SectionNode(incompleteStats);
 		node = m_rootSection;
-	} else {
+	}
+	else {
 		SectionNode& parentNode = *m_sectionStack.back();
 		SectionNode::ChildSections::const_iterator it =
 		    std::find_if(parentNode.childSections.begin(),
@@ -7937,7 +7970,8 @@ virtual void sectionStarting(SectionInfo const& sectionInfo) {
 		if (it == parentNode.childSections.end()) {
 			node = new SectionNode(incompleteStats);
 			parentNode.childSections.push_back(node);
-		} else
+		}
+		else
 			node = *it;
 	}
 	m_sectionStack.push_back(node);
@@ -8174,7 +8208,8 @@ XmlWriter& endElement() {
 	if (m_tagIsOpen) {
 		stream() << "/>\n";
 		m_tagIsOpen = false;
-	} else {
+	}
+	else {
 		stream() << m_indent << "</" << m_tags.back() << ">\n";
 	}
 	m_tags.pop_back();
@@ -8545,7 +8580,8 @@ void writeSection(std::string const& className,
 		if (className.empty()) {
 			xml.writeAttribute("classname", name);
 			xml.writeAttribute("name", "root");
-		} else {
+		}
+		else {
 			xml.writeAttribute("classname", className);
 			xml.writeAttribute("name", name);
 		}
@@ -8706,7 +8742,8 @@ virtual void sectionEnded(SectionStats const& _sectionStats) {
 		if (m_config->showDurations() == ShowDurations::Always)
 			stream << "Completed in " << _sectionStats.durationInSeconds << "s" << std::endl;
 		m_headerPrinted = false;
-	} else {
+	}
+	else {
 		if (m_config->showDurations() == ShowDurations::Always)
 			stream << _sectionStats.sectionInfo.name << " completed in " << _sectionStats.durationInSeconds << "s" << std::endl;
 	}
@@ -8761,7 +8798,8 @@ public:
 				if (result.isOk()) {
 					colour = Colour::Success;
 					passOrFail = "FAILED - but was ok";
-				} else {
+				}
+				else {
 					colour = Colour::Error;
 					passOrFail = "FAILED";
 				}
@@ -8812,7 +8850,8 @@ public:
 			printResultType();
 			printOriginalExpression();
 			printReconstructedExpression();
-		} else {
+		}
+		else {
 			stream << "\n";
 		}
 		printMessage();
@@ -8977,13 +9016,15 @@ struct SummaryColumn {
 void printTotals(Totals const& totals) {
 	if (totals.testCases.total() == 0) {
 		stream << Colour(Colour::Warning) << "No tests ran\n";
-	} else if (totals.assertions.total() > 0 && totals.assertions.allPassed()) {
+	}
+	else if (totals.assertions.total() > 0 && totals.assertions.allPassed()) {
 		stream << Colour(Colour::ResultSuccess) << "All tests passed";
 		stream << " ("
 		       << pluralise(totals.assertions.passed, "assertion") << " in "
 		       << pluralise(totals.testCases.passed, "test case") << ")"
 		       << "\n";
-	} else {
+	}
+	else {
 
 		std::vector<SummaryColumn> columns;
 		columns.push_back(SummaryColumn("", Colour::None)
@@ -9012,7 +9053,8 @@ void printSummaryRow(std::string const& label, std::vector<SummaryColumn> const&
 				stream << value;
 			else
 				stream << Colour(Colour::Warning) << "- none -";
-		} else if (value != "0") {
+		}
+		else if (value != "0") {
 			stream  << Colour(Colour::LightGrey) << " | ";
 			stream  << Colour(it->colour)
 			        << value << " " << it->label;
@@ -9050,7 +9092,8 @@ void printTotalsDivider(Totals const& totals) {
 			stream << Colour(Colour::ResultSuccess) << std::string(passedRatio, '=');
 		else
 			stream << Colour(Colour::Success) << std::string(passedRatio, '=');
-	} else {
+	}
+	else {
 		stream << Colour(Colour::Warning) << std::string(CATCH_CONFIG_CONSOLE_WIDTH-1, '=');
 	}
 	stream << "\n";
@@ -9331,7 +9374,8 @@ std::string bothOrAll(std::size_t count) const {
 void printTotals(const Totals& totals) const {
 	if (totals.testCases.total() == 0) {
 		stream << "No tests ran.";
-	} else if (totals.testCases.failed == totals.testCases.total()) {
+	}
+	else if (totals.testCases.failed == totals.testCases.total()) {
 		Colour colour(Colour::ResultError);
 		const std::string qualify_assertions_failed =
 		    totals.assertions.failed == totals.assertions.total() ?
@@ -9341,17 +9385,20 @@ void printTotals(const Totals& totals) const {
 		       << pluralise(totals.testCases.failed, "test case") << ", "
 		       "failed " << qualify_assertions_failed <<
 		       pluralise(totals.assertions.failed, "assertion") << ".";
-	} else if (totals.assertions.total() == 0) {
+	}
+	else if (totals.assertions.total() == 0) {
 		stream <<
 		       "Passed " << bothOrAll(totals.testCases.total())
 		       << pluralise(totals.testCases.total(), "test case")
 		       << " (no assertions).";
-	} else if (totals.assertions.failed) {
+	}
+	else if (totals.assertions.failed) {
 		Colour colour(Colour::ResultError);
 		stream <<
 		       "Failed " << pluralise(totals.testCases.failed, "test case") << ", "
 		       "failed " << pluralise(totals.assertions.failed, "assertion") << ".";
-	} else {
+	}
+	else {
 		Colour colour(Colour::ResultSuccess);
 		stream <<
 		       "Passed " << bothOrAll(totals.testCases.passed)

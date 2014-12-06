@@ -16,10 +16,12 @@ ExprNode* Parser::parse_expression()
 	// following it.
 	if (token_is_terminator(*token_iter)) {
 		return lhs;
-	} else if (token_is_const_function(*token_iter)) {
+	}
+	else if (token_is_const_function(*token_iter)) {
 		// Parse binary operator
 		lhs = parse_binary_func_call(std::move(lhs), -1000000);
-	} else {
+	}
+	else {
 		// Error
 		std::ostringstream msg;
 		msg << "Expected a binary operator, but instead found '" << token_iter->text << "'.";
@@ -61,7 +63,8 @@ ExprNode* Parser::parse_primary_expression()
 			else if (token_is_const_function(*token_iter)) {
 				if (!token_is_terminator(token_iter[1])) {
 					return parse_unary_func_call();
-				} else {
+				}
+				else {
 					// TODO
 					std::ostringstream msg;
 					msg << "TODO: can't parse const functions as values yet. ('" << token_iter->text << "')";

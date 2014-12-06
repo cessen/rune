@@ -10,7 +10,8 @@ FuncCallNode* Parser::parse_standard_func_call()
 	// Get function name
 	if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
 		node->name = token_iter->text;
-	} else {
+	}
+	else {
 		// Error
 		std::ostringstream msg;
 		msg << "Invalid name for standard function call: '" << token_iter->text << "'.";
@@ -46,7 +47,8 @@ FuncCallNode* Parser::parse_standard_func_call()
 		if (token_iter->type == COMMA) {
 			++token_iter;
 			continue;
-		} else if (token_iter->type == RSQUARE) {
+		}
+		else if (token_iter->type == RSQUARE) {
 			++token_iter;
 			break;
 		}
@@ -68,7 +70,8 @@ FuncCallNode* Parser::parse_unary_func_call()
 	// Get function name
 	if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
 		node->name = token_iter->text;
-	} else {
+	}
+	else {
 		// Error
 		std::ostringstream msg;
 		msg << "Invalid name for unary function call: '" << token_iter->text << "'.";
@@ -114,19 +117,23 @@ ExprNode* Parser::parse_binary_func_call(ExprNode* lhs, int lhs_prec)
 			node->parameters[0] = lhs;
 			node->parameters[1] = rhs;
 			break;
-		} else if (lhs_prec >= my_prec) {
+		}
+		else if (lhs_prec >= my_prec) {
 			token_iter = pre_rhs;
 			return lhs;
-		} else if (token_is_const_function(*token_iter)) {
+		}
+		else if (token_is_const_function(*token_iter)) {
 			if (get_op_prec(token_iter->text) > my_prec) {
 				rhs = parse_binary_func_call(std::move(rhs), my_prec);
-			} else {
+			}
+			else {
 				node->parameters = ast.store.alloc_array<ExprNode*>(2);
 				node->parameters[0] = lhs;
 				node->parameters[1] = rhs;
 				return parse_binary_func_call(std::move(node), lhs_prec);
 			}
-		} else {
+		}
+		else {
 			// Error
 			std::ostringstream msg;
 			msg << "GAHWHATDOESTHISMEAN??? parse_binary_func_call()";

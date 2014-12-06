@@ -45,7 +45,8 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 		if (token_iter->type == K_FN) {
 			++token_iter;
 			skip_newlines();
-		} else {
+		}
+		else {
 			// Error
 			std::ostringstream msg;
 			msg << "Function literal must start with 'fn'.";
@@ -127,7 +128,8 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 		skip_newlines();
 		node->return_type = parse_type();
 
-	} else {
+	}
+	else {
 		// Empty return type
 		node->return_type = ast.store.alloc<Void_T>();
 	}
@@ -136,7 +138,8 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 	skip_newlines();
 	if (token_iter->type == LPAREN) {
 		node->body = parse_scope();
-	} else {
+	}
+	else {
 		// Error
 		std::ostringstream msg;
 		msg << "Function definition has no body.";

@@ -59,7 +59,8 @@ public:
 			symbol_table.emplace(std::make_pair(name, type));
 			symbol_stack.back().push_back(name);
 			return true;
-		} else {
+		}
+		else {
 			return false;
 		}
 	}

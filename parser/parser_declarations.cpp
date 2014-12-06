@@ -101,7 +101,8 @@ ConstantDeclNode* Parser::parse_constant_decl()
 	// Get name
 	if (token_iter->type == IDENTIFIER) {
 		node->name = token_iter->text;
-	} else {
+	}
+	else {
 		// Error
 		std::ostringstream msg;
 		msg << "Invalid constant name: '" << token_iter->text << "'.";
@@ -115,7 +116,8 @@ ConstantDeclNode* Parser::parse_constant_decl()
 		++token_iter;
 		skip_newlines();
 		node->type = parse_type();
-	} else {
+	}
+	else {
 		// Unknown type
 		node->type = ast.store.alloc<Void_T>();
 	}
@@ -137,7 +139,8 @@ ConstantDeclNode* Parser::parse_constant_decl()
 			msg << "Attempted to declare const function '" << node->name << "', but something with the same name is already in scope.";
 			parsing_error(*token_iter, msg.str());
 		}
-	} else {
+	}
+	else {
 		if (!scope_stack.push_symbol(node->name, SymbolType::CONST_VARIABLE)) {
 			// Error
 			std::ostringstream msg;
@@ -175,7 +178,8 @@ VariableDeclNode* Parser::parse_variable_decl()
 	skip_newlines();
 	if (token_iter->type == IDENTIFIER) {
 		node->name = token_iter->text;
-	} else {
+	}
+	else {
 		// Error
 		std::ostringstream msg;
 		msg << "Invalid variable name: '" << token_iter->text << "'.";
@@ -197,7 +201,8 @@ VariableDeclNode* Parser::parse_variable_decl()
 		++token_iter;
 		skip_newlines();
 		node->type = parse_type();
-	} else {
+	}
+	else {
 		// Unknown type
 		node->type = ast.store.alloc<Void_T>();
 	}
@@ -206,7 +211,8 @@ VariableDeclNode* Parser::parse_variable_decl()
 	if (token_iter->type == OPERATOR && token_iter->text == "=") {
 		++token_iter;
 		node->initializer = parse_expression();
-	} else {
+	}
+	else {
 		// No initializer
 		// TODO
 		node->initializer = ast.store.alloc<ExprNode>();
@@ -235,7 +241,8 @@ ConstantDeclNode* Parser::parse_func_definition()
 	skip_newlines();
 	if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
 		node->name = token_iter->text;
-	} else {
+	}
+	else {
 		// Error
 		std::ostringstream msg;
 		msg << "Invalid function name: '" << token_iter->text << "'.";

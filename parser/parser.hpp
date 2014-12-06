@@ -161,12 +161,14 @@ private:
 	bool token_is_const_function(Token t) {
 		if (t.type == OPERATOR) {
 			return true;
-		} else if (t.type == IDENTIFIER &&
-		           scope_stack.is_symbol_in_scope(t.text) &&
-		           scope_stack.symbol_type(t.text) == SymbolType::CONST_FUNCTION
-		          ) {
+		}
+		else if (t.type == IDENTIFIER &&
+		         scope_stack.is_symbol_in_scope(t.text) &&
+		         scope_stack.symbol_type(t.text) == SymbolType::CONST_FUNCTION
+		        ) {
 			return true;
-		} else {
+		}
+		else {
 			return false;
 		}
 	}
@@ -179,7 +181,8 @@ private:
 		        scope_stack.symbol_type(t.text) == SymbolType::VARIABLE
 		   ) {
 			return true;
-		} else {
+		}
+		else {
 			return false;
 		}
 	}

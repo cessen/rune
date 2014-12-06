@@ -64,9 +64,10 @@ start_over:
 		else if (is_ident_char(cur_c) && !is_digit_char(cur_c)) {
 			do {
 				next_char();
-			} while (is_ident_char(cur_c));
+			}
+			while (is_ident_char(cur_c));
+			
 			token.text.set_end(str_iter);
-
 			token.type = IDENTIFIER;
 
 			// Check if the identifier is actually a
@@ -77,8 +78,8 @@ start_over:
 		else if (in_generic() && cur_c[0] == '>') {
 			pop_generic(true);
 			next_char();
+			
 			token.text.set_end(str_iter);
-
 			token.type = RGENERIC;
 		}
 
@@ -86,9 +87,10 @@ start_over:
 		else if (is_op_char(cur_c)) {
 			do {
 				next_char();
-			} while (is_op_char(cur_c));
+			}
+			while (is_op_char(cur_c));
+			
 			token.text.set_end(str_iter);
-
 			token.type = OPERATOR;
 		}
 
@@ -147,7 +149,8 @@ start_over:
 						token.type = LGENERIC;
 						push_generic(true);
 						next_char();
-					} else {
+					}
+					else {
 						token.type = BACKTICK;
 					}
 					break;
@@ -157,6 +160,7 @@ start_over:
 					next_char();
 					break;
 			}
+			
 			token.text.set_end(str_iter);
 		}
 
@@ -185,8 +189,8 @@ start_over:
 		// If it's anything else
 		else if (cur_c != "") {
 			next_char();
+			
 			token.text.set_end(str_iter);
-
 			token.type = UNKNOWN;
 		}
 
@@ -205,7 +209,8 @@ private:
 		if (cur_c == "\n") {
 			++line_number;
 			column_number = 0;
-		} else {
+		}
+		else {
 			column_number += cur_c.size();
 		}
 
@@ -269,13 +274,15 @@ private:
 			do {
 				++q_count;
 				next_char();
-			} while (cur_c == "'");
+			}
+			while (cur_c == "'");
 
 			// If it doesn't end in " it's malformed
 			if (cur_c != "\"") {
 				token.text.set_end(str_iter);
 				token.type = UNKNOWN;
-			} else {
+			}
+			else {
 				next_char();
 				init_token(); // Start the token after the opening sequence
 
@@ -344,11 +351,13 @@ private:
 					++dot_count;
 					next_char();
 				}
-			} while (is_digit_char(cur_c));
+			}
+			while (is_digit_char(cur_c));
 
 			if (dot_count == 0) {
 				token.type = INTEGER_LIT;
-			} else if (dot_count == 1) {
+			}
+			else if (dot_count == 1) {
 				token.type = FLOAT_LIT;
 			}
 		}
@@ -365,25 +374,30 @@ void check_for_keyword(Token& token)
 	// Scoping
 	if (token.text == "namespace") {
 		token.type = K_NAMESPACE;
-	} else if (token.text == "pub") {
+	}
+	else if (token.text == "pub") {
 		token.type = K_PUB;
-	} else if (token.text == "unsafe") {
+	}
+	else if (token.text == "unsafe") {
 		token.type = K_UNSAFE;
 	}
 
 	// Handle declarations
 	else if (token.text == "const") {
 		token.type = K_CONST;
-	} else if (token.text == "val") {
+	}
+	else if (token.text == "val") {
 		token.type = K_VAL;
-	} else if (token.text == "var") {
+	}
+	else if (token.text == "var") {
 		token.type = K_VAR;
 	}
 
 	// Handle modifiers
 	else if (token.text == "mut") {
 		token.type = K_MUT;
-	} else if (token.text == "ref") {
+	}
+	else if (token.text == "ref") {
 		token.type = K_REF;
 	}
 
@@ -395,39 +409,51 @@ void check_for_keyword(Token& token)
 	// Data types
 	else if (token.text == "struct") {
 		token.type = K_STRUCT;
-	} else if (token.text == "enum") {
+	}
+	else if (token.text == "enum") {
 		token.type = K_ENUM;
-	} else if (token.text == "union") {
+	}
+	else if (token.text == "union") {
 		token.type = K_UNION;
 	}
 
 	// Traits
 	else if (token.text == "trait") {
 		token.type = K_TRAIT;
-	} else if (token.text == "is") {
+	}
+	else if (token.text == "is") {
 		token.type = K_IS;
 	}
 
 	// Control flow
 	else if (token.text == "if") {
 		token.type = K_IF;
-	} else if (token.text == "else") {
+	}
+	else if (token.text == "else") {
 		token.type = K_ELSE;
-	} else if (token.text == "loop") {
+	}
+	else if (token.text == "loop") {
 		token.type = K_LOOP;
-	} else if (token.text == "while") {
+	}
+	else if (token.text == "while") {
 		token.type = K_WHILE;
-	} else if (token.text == "until") {
+	}
+	else if (token.text == "until") {
 		token.type = K_UNTIL;
-	} else if (token.text == "for") {
+	}
+	else if (token.text == "for") {
 		token.type = K_FOR;
-	} else if (token.text == "in") {
+	}
+	else if (token.text == "in") {
 		token.type = K_IN;
-	} else if (token.text == "break") {
+	}
+	else if (token.text == "break") {
 		token.type = K_BREAK;
-	} else if (token.text == "continue") {
+	}
+	else if (token.text == "continue") {
 		token.type = K_CONTINUE;
-	} else if (token.text == "return") {
+	}
+	else if (token.text == "return") {
 		token.type = K_RETURN;
 	}
 
@@ -439,7 +465,8 @@ void check_for_keyword(Token& token)
 	// Misc
 	else if (token.text == "alias") {
 		token.type = K_ALIAS;
-	} else if (token.text == "type") {
+	}
+	else if (token.text == "type") {
 		token.type = K_TYPE;
 	}
 }
