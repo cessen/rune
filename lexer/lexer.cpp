@@ -217,7 +217,7 @@ private:
 		token.type = UNKNOWN;
 		token.line = line_number;
 		token.column = column_number;
-		token.text.iter = str_iter;
+		token.text.set_begin(str_iter);
 		token.text.set_end(str_iter);
 	}
 
@@ -299,7 +299,7 @@ private:
 					next_char();
 				}
 
-				++token.text.length; // End the token just before the closing sequence
+				++token.text.iter_end; // End the token just before the closing sequence
 				token.type = RAW_STRING_LIT;
 			}
 		}
@@ -458,6 +458,8 @@ std::vector<Token> lex_string(const std::string& input)
 		if (tokens.back().type == LEX_EOF)
 			break;
 	}
+
+	tokens.pop_back(); // Pop EOL token
 
 	return tokens;
 }

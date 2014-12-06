@@ -5,39 +5,66 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
-#include <cstring>
 
 /**
  * A non-owning view into part of a std::string.
  */
 struct StringSlice {
-	std::string::const_iterator iter; // Iterator to the beginning of the string slice
-	size_t length = 0; // Iterator to the end of the string slice
+	char const * iter {
+		nullptr
+	}; // Iterator to the beginning of the string slice
+	char const * iter_end {
+		nullptr
+	}; // Iterator to the end of the string slice
 
 	StringSlice()
 	{}
 
-	StringSlice(std::string::const_iterator begin, std::string::const_iterator end): iter {begin}, length {static_cast<size_t>(std::distance(begin, end))}
+	StringSlice(char const * iter, char const * iter_end): iter {iter}, iter_end {iter_end}
 	{}
 
-	// iter must be set before calling this
-	void set_end(std::string::const_iterator end) {
-		length = std::distance(iter, end);
+	StringSlice(std::string::const_iterator iter, std::string::const_iterator iter_end): iter {&(*iter)}, iter_end {&(*iter_end)}
+	{}
+
+
+	void set_begin(char const * begin) {
+		iter = begin;
 	}
 
+	void set_begin(std::string::const_iterator begin) {
+		iter = &(*begin);
+	}
+
+
+	void set_end(char const * end) {
+		iter_end = end;
+	}
+
+	void set_end(std::string::const_iterator end) {
+		iter_end = &(*end);
+	}
+
+
 	std::string to_string() const {
-		if (length != 0)
-			return std::string(iter, iter+length);
+		if (iter != iter_end)
+			return std::string(iter, iter_end);
 		else
 			return std::string("");
 	}
 
 
+	size_t length() const {
+		return std::distance(iter, iter_end);
+	}
+
+
 	bool operator==(const StringSlice &other) const {
-		if (length != other.length)
+		const auto len = length();
+		const auto other_len = other.length();
+		if (len != other_len)
 			return false;
 
-		for (int i = 0; i < length; ++i) {
+		for (int i = 0; i < len; ++i) {
 			if (iter[i] != other.iter[i])
 				return false;
 		}
@@ -52,12 +79,13 @@ struct StringSlice {
 
 
 	bool operator==(const std::string &other) const {
-		const auto other_length = other.length();
-		if (length != other_length)
+		const auto len = length();
+		const auto other_len = other.length();
+		if (len != other_len)
 			return false;
 
 		auto other_iter = other.begin();
-		for (int i = 0; i < length; ++i) {
+		for (int i = 0; i < len; ++i) {
 			if (iter[i] != other_iter[i])
 				return false;
 		}
@@ -72,8 +100,10 @@ struct StringSlice {
 
 
 	bool operator==(const char* const str) const {
+		const auto len = length();
+
 		int i = 0;
-		for (; i < length; ++i) {
+		for (; i < len; ++i) {
 			if (iter[i] != str[i] || str[i] == '\0')
 				return false;
 		}
@@ -94,10 +124,12 @@ struct StringSlice {
 // Allows StringSlice to be used with iostreams
 static std::ostream& operator<< (std::ostream& out, const StringSlice& strslc)
 {
-	if (strslc.length == 0)
+	const auto length = strslc.length();
+
+	if (length == 0)
 		return out;
 
-	for (size_t i = 0; i < strslc.length; ++i)
+	for (size_t i = 0; i < length; ++i)
 		out << strslc.iter[i];
 
 	return out;
