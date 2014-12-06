@@ -27,6 +27,25 @@ DeclNode* Parser::parse_declaration()
 	}
 }
 
+Type* Parser::parse_type()
+{
+	std::string identifier = token_iter->text.to_string();
+
+	if (identifier.compare("i8") == 0)
+		return ast.store.alloc<Int8_T>();
+	if (identifier.compare("i16") == 0)
+		return ast.store.alloc<Int16_T>();
+	if (identifier.compare("i32") == 0)
+		return ast.store.alloc<Int32_T>();
+	if (identifier.compare("i64") == 0)
+		return ast.store.alloc<Int64_T>();
+
+
+	std::ostringstream msg;
+	msg << "Invalid type name: '" << token_iter->text << "'.";
+	parsing_error(*token_iter, msg.str());
+}
+
 
 // Constant
 ConstantDeclNode* Parser::parse_constant_decl()
@@ -55,8 +74,8 @@ ConstantDeclNode* Parser::parse_constant_decl()
 
 		if (token_iter->type == IDENTIFIER) {
 			// TODO
+			node->type = parse_type();
 			++token_iter;
-			node->type = ast.store.alloc<TypeExprNode>();
 		} else {
 			// Error
 			std::ostringstream msg;
@@ -66,7 +85,7 @@ ConstantDeclNode* Parser::parse_constant_decl()
 	} else {
 		// Unknown type
 		// TODO
-		node->type = ast.store.alloc<TypeExprNode>();
+		node->type = ast.store.alloc<Void_T>();
 	}
 
 	// Initializer is required for constants
@@ -148,8 +167,8 @@ VariableDeclNode* Parser::parse_variable_decl()
 
 		if (token_iter->type == IDENTIFIER) {
 			// TODO
+			node->type = parse_type();
 			++token_iter;
-			node->type = ast.store.alloc<TypeExprNode>();
 		} else {
 			// Error
 			std::ostringstream msg;
@@ -159,7 +178,7 @@ VariableDeclNode* Parser::parse_variable_decl()
 	} else {
 		// Unknown type
 		// TODO
-		node->type = ast.store.alloc<TypeExprNode>();
+		node->type = ast.store.alloc<Void_T>();
 	}
 
 	// Optional "="
@@ -216,7 +235,7 @@ ConstantDeclNode* Parser::parse_func_definition()
 	node->initializer = parse_function_literal(false);
 
 	// TODO: type
-	node->type = ast.store.alloc<TypeExprNode>();
+	node->type = ast.store.alloc<Void_T>();
 
 	return node;
 }

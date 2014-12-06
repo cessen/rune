@@ -4,7 +4,7 @@
 #include <iostream>
 #include "memory_arena.hpp"
 #include "string_slice.hpp"
-
+#include "type.hpp"
 
 static void print_indent(int indent)
 {
@@ -69,7 +69,12 @@ struct ExprNode: StatementNode {
 /**
  * Declaration node base class.
  */
-struct DeclNode: StatementNode {
+struct DeclNode : StatementNode {
+	StringSlice name;
+	bool mut;
+	Type* type;
+	ExprNode* initializer;
+
 	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "EMPTY_Decl";
@@ -157,10 +162,6 @@ struct NameTypePair {
 ////////////////////////////////////////////////////////////////
 
 struct ConstantDeclNode: DeclNode {
-	StringSlice name;
-	TypeExprNode* type;
-	ExprNode* initializer;
-
 	virtual void print(int indent) {
 		// Name
 		print_indent(indent);
@@ -181,11 +182,6 @@ struct ConstantDeclNode: DeclNode {
 };
 
 struct VariableDeclNode: DeclNode {
-	StringSlice name;
-	bool mut;
-	TypeExprNode* type;
-	ExprNode* initializer;
-
 	virtual void print(int indent) {
 		// Name
 		print_indent(indent);

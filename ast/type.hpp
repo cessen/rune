@@ -2,7 +2,9 @@
 #define TYPE_HPP
 
 #include <cstdint>
+
 #include "slice.hpp"
+#include "string_slice.hpp"
 
 
 enum struct TypeClass {
@@ -28,6 +30,11 @@ enum struct TypeClass {
  */
 struct Type {
 	virtual TypeClass type_class() = 0;
+	virtual void print(int indent) {
+		for (int i = 0; i < indent; ++i) {
+			std::cout << "\t";
+		}
+	};
 };
 
 
@@ -39,6 +46,10 @@ struct Type {
 struct Void_T: Type {
 	virtual TypeClass type_class() {
 		return TypeClass::Void;
+	}
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Void";
 	}
 };
 
@@ -59,59 +70,111 @@ struct Atom_T: Type {
 
 
 // An 8-bit byte
-struct Byte_T: Atom_T {
+struct Byte_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Byte";
+	}
 };
 
 
 // An 8-bit integer
-struct Int8_T: Atom_T {
+struct Int8_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Int8";
+	}
 };
 
 // An 16-bit integer
-struct Int16_T: Atom_T {
+struct Int16_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Int16";
+	}
 };
 
 // An 32-bit integer
-struct Int32_T: Atom_T {
+struct Int32_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Int32";
+	}
 };
 
 // An 64-bit integer
-struct Int64_T: Atom_T {
+struct Int64_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Int64";
+	}
 };
 
 
 // An unsigned 8-bit integer
-struct UInt8_T: Atom_T {
+struct UInt8_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "UInt8";
+	}
 };
 
 // An unsigned 16-bit integer
-struct UInt16_T: Atom_T {
+struct UInt16_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "UInt16";
+	}
 };
 
 // An unsigned 32-bit integer
 struct UInt32_T: Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "UInt32";
+	}
 };
 
 // An unsigned 64-bit integer
-struct UInt64_T: Atom_T {
+struct UInt64_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "UInt64";
+	}
 };
 
 
 // A 16-bit float
-struct Float16_T: Atom_T {
+struct Float16_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Float16";
+	}
 };
 
 // A 32-bit float
-struct Float32_T: Atom_T {
+struct Float32_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Float32";
+	}
 };
 
 // A 64-bit float
-struct Float64_T: Atom_T {
+struct Float64_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Float64";
+	}
 };
 
 
 // Unicode code point, 32 bits
-struct CodePoint_T: Atom_T {
+struct CodePoint_T : Atom_T {
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Code Point";
+	}
 };
 
 
@@ -194,6 +257,5 @@ struct Function_T: Type {
 	Slice<Type*> parameter_ts;  // The types of the parameters of the function
 	Type* return_t;  // The return type of the function
 };
-
 
 #endif // TYPE_HPP

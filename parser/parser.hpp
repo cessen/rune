@@ -119,6 +119,7 @@ private:
 
 	// parser_declarations.cpp
 	DeclNode* parse_declaration();
+	struct Type* parse_type();
 	ConstantDeclNode* parse_constant_decl();
 	VariableDeclNode* parse_variable_decl();
 	ConstantDeclNode* parse_func_definition();

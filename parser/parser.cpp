@@ -1,4 +1,5 @@
 #include "parser.hpp"
+#include "type.hpp"
 
 
 AST parse_tokens(const char* file_path, const std::vector<Token>& tokens)
