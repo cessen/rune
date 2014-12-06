@@ -1,8 +1,12 @@
 add_library(parser
-	parser
-	parser_statements
-	parser_scope
-	parser_expressions
-	parser_declarations
-	parser_calls
-	parser_literals)
+	parser.hpp
+	scope_stack.hpp
+
+	parser.cpp
+	parser_calls.cpp
+	parser_declarations.cpp
+	parser_expressions.cpp
+	parser_literals.cpp
+	parser_scope.cpp
+	parser_statements.cpp
+)
