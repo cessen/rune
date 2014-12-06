@@ -29,21 +29,41 @@ DeclNode* Parser::parse_declaration()
 
 Type* Parser::parse_type()
 {
-	std::string identifier = token_iter->text.to_string();
-
-	if (identifier.compare("i8") == 0)
+    // Signed integers
+	if (token_iter->text == "i8")
 		return ast.store.alloc<Int8_T>();
-	if (identifier.compare("i16") == 0)
+	if (token_iter->text == "i16")
 		return ast.store.alloc<Int16_T>();
-	if (identifier.compare("i32") == 0)
+	if (token_iter->text == "i32")
 		return ast.store.alloc<Int32_T>();
-	if (identifier.compare("i64") == 0)
+	if (token_iter->text == "i64")
 		return ast.store.alloc<Int64_T>();
-
+	
+	// Unsigned integers
+	if (token_iter->text == "u8")
+        return ast.store.alloc<UInt8_T>();
+    if (token_iter->text == "u16")
+        return ast.store.alloc<UInt16_T>();
+    if (token_iter->text == "u32")
+        return ast.store.alloc<UInt32_T>();
+    if (token_iter->text == "u64")
+        return ast.store.alloc<UInt64_T>();
+        
+    // Floats
+    if (token_iter->text == "f16")
+        return ast.store.alloc<Float16_T>();
+    if (token_iter->text == "f32")
+        return ast.store.alloc<Float32_T>();
+    if (token_iter->text == "f64")
+        return ast.store.alloc<Float64_T>();
 
 	std::ostringstream msg;
 	msg << "Invalid type name: '" << token_iter->text << "'.";
 	parsing_error(*token_iter, msg.str());
+
+    // Bogus return, will never be reached because parsing_error() throws.
+    // It's here just to silence warnings.
+	return nullptr;
 }
 
 
