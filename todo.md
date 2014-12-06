@@ -1,3 +1,1 @@
 - Unit tests for lexer
-- Change AST and Parser to use memory arena class
-- Add [Catch](catch-lib.net) for unit testing
