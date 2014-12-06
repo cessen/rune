@@ -130,7 +130,6 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 	} else {
 		// Empty return type
 		node->return_type = ast.store.alloc<Void_T>();
-		++token_iter;
 	}
 
 	// Function body
