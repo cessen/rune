@@ -93,12 +93,12 @@ TEST_CASE("Memory alignment requirements", "[memory_arena]")
 	MemoryArena<128> arena;
 
 	arena.alloc<char>();
-	uintptr_t a = (uintptr_t)(arena.alloc<SomeType>());
-	uintptr_t b = (uintptr_t)(arena.alloc<SomeType>());
+	uintptr_t a = reinterpret_cast<uintptr_t>(arena.alloc<SomeType>());
+	uintptr_t b = reinterpret_cast<uintptr_t>(arena.alloc<SomeType>());
 	arena.alloc<char>();
 	arena.alloc<char>();
 	arena.alloc<char>();
-	uintptr_t c = (uintptr_t)(arena.alloc<SomeType>());
+	uintptr_t c = reinterpret_cast<uintptr_t>(arena.alloc<SomeType>());
 
 	REQUIRE((a % alignof(SomeType)) == 0);
 	REQUIRE((b % alignof(SomeType)) == 0);

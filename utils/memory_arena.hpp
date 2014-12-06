@@ -59,7 +59,7 @@ class MemoryArena
 
 		// Figure out how much padding we need at the beginning to put the
 		// first element in the right place for memory alignment.
-		const auto mem_addr = (uintptr_t)(chunks.back().data + chunks.back().used);
+		const auto mem_addr = reinterpret_cast<uintptr_t>(chunks.back().data + chunks.back().used);
 		const auto begin_pad = (alignof(T) - (mem_addr % alignof(T))) % alignof(T);
 
 		// Get the number of bytes left in the current chunk
