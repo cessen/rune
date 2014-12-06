@@ -80,12 +80,11 @@ target_link_libraries(rune
 	${RUNE_LIB}
 	)
 
-## Unit-test executable
-#file(GLOB_RECURSE TEST_FILES *_test.cpp) # Find all tests
-#
-#add_executable(unit_tests
-#	"test/test_main" ${TEST_FILES})
-#target_link_libraries(unit_tests
-#	${RUNE_LIB}
-#	)
+# Unit-test executable
+file(GLOB_RECURSE TEST_FILES *_test.cpp) # Find all tests
 
+add_executable(unit_tests
+	"test/test_main" ${TEST_FILES})
+target_link_libraries(unit_tests
+	${RUNE_LIB}
+	)
