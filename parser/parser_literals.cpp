@@ -127,7 +127,7 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 		++token_iter;
 		skip_newlines();
 		node->return_type = parse_type();
-		
+
 	} else {
 		// Empty return type
 		node->return_type = ast.store.alloc<Void_T>();

@@ -29,63 +29,63 @@ DeclNode* Parser::parse_declaration()
 
 Type* Parser::parse_type()
 {
-    // Signed integers
+	// Signed integers
 	if (token_iter->text == "i8") {
-	    ++token_iter;
+		++token_iter;
 		return ast.store.alloc<Int8_T>();
 	}
 	if (token_iter->text == "i16") {
-	    ++token_iter;
+		++token_iter;
 		return ast.store.alloc<Int16_T>();
 	}
 	if (token_iter->text == "i32") {
-	    ++token_iter;
+		++token_iter;
 		return ast.store.alloc<Int32_T>();
 	}
 	if (token_iter->text == "i64") {
-	    ++token_iter;
+		++token_iter;
 		return ast.store.alloc<Int64_T>();
 	}
-	
+
 	// Unsigned integers
 	if (token_iter->text == "u8") {
-	    ++token_iter;
-        return ast.store.alloc<UInt8_T>();
+		++token_iter;
+		return ast.store.alloc<UInt8_T>();
 	}
-    if (token_iter->text == "u16") {
-        ++token_iter;
-        return ast.store.alloc<UInt16_T>();
-    }
-    if (token_iter->text == "u32") {
-        ++token_iter;
-        return ast.store.alloc<UInt32_T>();
-    }
-    if (token_iter->text == "u64") {
-        ++token_iter;
-        return ast.store.alloc<UInt64_T>();
-    }
-        
-    // Floats
-    if (token_iter->text == "f16") {
-        ++token_iter;
-        return ast.store.alloc<Float16_T>();
-    }
-    if (token_iter->text == "f32") {
-        ++token_iter;
-        return ast.store.alloc<Float32_T>();
-    }
-    if (token_iter->text == "f64") {
-        ++token_iter;
-        return ast.store.alloc<Float64_T>();
-    }
+	if (token_iter->text == "u16") {
+		++token_iter;
+		return ast.store.alloc<UInt16_T>();
+	}
+	if (token_iter->text == "u32") {
+		++token_iter;
+		return ast.store.alloc<UInt32_T>();
+	}
+	if (token_iter->text == "u64") {
+		++token_iter;
+		return ast.store.alloc<UInt64_T>();
+	}
 
-    // Error, unknown type
+	// Floats
+	if (token_iter->text == "f16") {
+		++token_iter;
+		return ast.store.alloc<Float16_T>();
+	}
+	if (token_iter->text == "f32") {
+		++token_iter;
+		return ast.store.alloc<Float32_T>();
+	}
+	if (token_iter->text == "f64") {
+		++token_iter;
+		return ast.store.alloc<Float64_T>();
+	}
+
+	// Error, unknown type
 	std::ostringstream msg;
 	msg << "Invalid type name: '" << token_iter->text << "'.";
 	parsing_error(*token_iter, msg.str());
 
-    // Bogus return, will never be reached because parsing_error() throws.
-    // It's here just to silence warnings.
+	// Bogus return, will never be reached because parsing_error() throws.
+	// It's here just to silence warnings.
 	return nullptr;
 }
 
