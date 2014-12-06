@@ -90,7 +90,6 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 		}
 
 		// Parameter type
-		// TODO: types aren't just names, need to evaluate full type expression here.
 		++token_iter;
 		skip_newlines();
 		parameters.push_back(NameTypePair {name, parse_type()});
