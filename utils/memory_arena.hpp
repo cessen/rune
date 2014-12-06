@@ -1,6 +1,7 @@
 #ifndef MEMORY_ARENA_HPP
 #define MEMORY_ARENA_HPP
 
+#include <cstdint>
 #include <cstdlib>
 #include <utility>
 #include <vector>
@@ -44,19 +45,49 @@ class MemoryArena
 	 */
 	template <typename T>
 	T* _alloc(size_t count) {
-		const auto needed_bytes = sizeof(T) * count;
+		// Figure out how much padding we need between elements for proper
+		// memory alignment if we put them in an array.
+		const auto array_pad = (alignof(T) - (sizeof(T) % alignof(T))) % alignof(T);
+
+		// Total needed bytes for the requested array of data
+		const auto needed_bytes = (sizeof(T) * count) + (array_pad * (count - 1));
+
+		// Figure out how much padding we need at the beginning to put the
+		// first element in the right place for memory alignment.
+		const auto mem_addr = (uintptr_t)(chunks.back().data + chunks.back().used);
+		const auto begin_pad = (alignof(T) - (mem_addr % alignof(T))) % alignof(T);
+
+		// Get the number of bytes left in the current chunk
 		const auto available_bytes = chunks.back().size - chunks.back().used;
 
-		if (needed_bytes > available_bytes) {
-			const size_t new_chunk_size = needed_bytes > MIN_CHUNK_SIZE ? needed_bytes : MIN_CHUNK_SIZE;
+		// If we don't have enough space in this chunk, then we need to create
+		// a new chunk.
+		if ((begin_pad + needed_bytes) > available_bytes) {
+			// Calculate the minimum needed bytes to guarantee that we can
+			// accommodate properlyaligned data.
+			const auto min_needed_bytes = needed_bytes + alignof(T);
+
+			// Make sure we don't get a chunk smaller than MIN_CHUNK_SIZE
+			const size_t new_chunk_size = min_needed_bytes > MIN_CHUNK_SIZE ? min_needed_bytes : MIN_CHUNK_SIZE;
+
+			// Create the new chunk, and then recurse for DRY purposes.
+			// TODO: if we break things up differently, we could perhaps
+			// avoid the redundant work caused by recursing while still
+			// being DRY.  Super low priority, though, unless this somehow
+			// turns out to be a performance bottleneck.
 			add_chunk(new_chunk_size);
+			return _alloc<T>(count);
 		}
 
-		T* ptr = reinterpret_cast<T*>(chunks.back().data + chunks.back().used);
+		// Otherwise, proceed in getting the pointer and recording how much
+		// of the chunk we used.
+		T* ptr = reinterpret_cast<T*>(chunks.back().data + chunks.back().used + begin_pad);
 		for (int i=0; i < count; ++i) {
 			new(ptr+i) T();
 		}
-		chunks.back().used += needed_bytes;
+		chunks.back().used += begin_pad + needed_bytes;
+
+		// Ta da!
 		return ptr;
 	}
 
