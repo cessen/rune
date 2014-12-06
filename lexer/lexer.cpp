@@ -459,7 +459,5 @@ std::vector<Token> lex_string(const std::string& input)
 			break;
 	}
 
-	tokens.pop_back(); // Pop EOL token
-
 	return tokens;
 }
