@@ -7,6 +7,11 @@
 #include <vector>
 #include "slice.hpp"
 
+#ifdef _MSC_VER
+#define alignof(T) __alignof(T)
+#define alignas(T) __declspec(align(T))
+#endif
+
 /**
  * A memory arena.
  */
