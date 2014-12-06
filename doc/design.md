@@ -212,8 +212,8 @@ These calling syntaxes are just syntactic sugar for the standard syntax, and (im
 Rune allows compile-time constants to be overloaded on type.  Note that this is not limited just to functions, but works for any compile-time constant.  However, you cannot overload a name on both function and non-function values.
 
     # Overloading function constants
-    const foo = fn [i32 a] -> i32 (...)
-    const foo = fn [f32 a] -> f32 (...)
+    const foo = fn [a: i32] -> i32 (...)
+    const foo = fn [a: f32] -> f32 (...)
     
     # Overloading non-function constants
     const bar: i32 = 5
