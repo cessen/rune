@@ -10,13 +10,11 @@
  * A non-owning view into part of a std::string.
  */
 struct StringSlice {
-	char const * iter {
-		nullptr
-	}; // Iterator to the beginning of the string slice
-	char const * iter_end {
-		nullptr
-	}; // Iterator to the end of the string slice
+	char const * iter = nullptr; // Iterator to the beginning of the string slice
+	char const * iter_end = nullptr; // Iterator to the end of the string slice
 
+
+	// Constructors
 	StringSlice()
 	{}
 
@@ -27,6 +25,7 @@ struct StringSlice {
 	{}
 
 
+	// Methods for setting the begin/end of the string slice
 	void set_begin(char const * begin) {
 		iter = begin;
 	}
@@ -34,7 +33,6 @@ struct StringSlice {
 	void set_begin(std::string::const_iterator begin) {
 		iter = &(*begin);
 	}
-
 
 	void set_end(char const * end) {
 		iter_end = end;
@@ -45,6 +43,13 @@ struct StringSlice {
 	}
 
 
+	// Returns the length of the string slice
+	size_t length() const {
+		return std::distance(iter, iter_end);
+	}
+
+
+	// Creates and returns a std::string from the string slice
 	std::string to_string() const {
 		if (iter != iter_end)
 			return std::string(iter, iter_end);
@@ -53,11 +58,7 @@ struct StringSlice {
 	}
 
 
-	size_t length() const {
-		return std::distance(iter, iter_end);
-	}
-
-
+	// Comparing string slices to various string representations
 	bool operator==(const StringSlice &other) const {
 		const auto len = length();
 		const auto other_len = other.length();
@@ -71,7 +72,6 @@ struct StringSlice {
 
 		return true;
 	}
-
 
 	bool operator!=(const StringSlice &other) const {
 		return !(*this == other);
@@ -93,7 +93,6 @@ struct StringSlice {
 		return true;
 	}
 
-
 	bool operator!=(const std::string &other) const {
 		return !(*this == other);
 	}
@@ -113,7 +112,6 @@ struct StringSlice {
 
 		return true;
 	}
-
 
 	bool operator!=(const char* const str) const {
 		return !(*this == str);
