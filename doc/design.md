@@ -55,10 +55,10 @@ There are four kinds of declarations in Rune:
 - Immutable variables
 - Mutable variables
 
-They are written like this:
+They are written (in their respective minimal forms) like this:
 
     # Type declaration
-    type Foo = ...
+    type Foo: ...
     
     # Compile-time constant declaration
     const bar = ...
@@ -67,18 +67,24 @@ They are written like this:
     val a = ...
     
     # Mutable variable declaration
-    var b = ...
+    var b
 
-`type`, `const`, and `val` declarations all _require_ an initializer.  `var` declarations do not.
+Where "..." is a stand-in for actual code.
 
-`const`, `val`, and `var` can optionally include a type specification.  Types are specified with a `:` after the name, followed by a type:
+`const` and `val` declarations _require_ a value initializer.  `var` can optionally have a value initializer, but does not require one.  `type` declarations don't have a value initializer.  Value initializers are an `=` followed by an expression:
 
-    const bar: i32 = 5  # 32-bit integer
-    val a: f32 = 5.2    # 32-bit float
-    var b: u8 = 255     # 8-bit unsigned integer
+    var b = 42
+
+`type` declarations _require_ a type specification.  `const`, `val`, and `var` can optionally include a type specification.  Types are specified with a `:` after the name, followed by a type:
+
+    # 8-bit unsigned integer
+    var b: u8
     
-In many cases, the type can be inferred without an explicit type specification.
+Note that type specification (if present) always precedes value initialization:
 
+    var b: u8 = 42
+
+Just because type specification is optional for `const`, `val`, and `var` declarations does not mean that they are typeless.  Rather, the compiler can often infer their type from how they are used.  If the compiler cannot infer their type, then you must provide a type specification.
 
 
 Built-in Types
@@ -222,14 +228,14 @@ These calling syntaxes are just syntactic sugar for the standard syntax, and (im
 Compound Types
 --------------
 
-Rune supports several ways of composing types together to create other types.  But to understand how to utlize them, you need to understand a bit of how Rune thinks about types and names.
+Rune supports several ways of composing types together to create other types.  But to understand how to utilize them, you need to understand a bit of how Rune thinks about types and names.
 
 
 ### Type Declarations ###
 
-Much like the distinction between a variable and a literal, Rune makes a distinction between named types and type "literals".  To create a new named type, you use the type keyword:
+Much like the distinction between a variable and a literal, Rune makes a distinction between named types and type "literals".  To create a new named type, you use the `type` keyword:
 
-    type Meters = f32
+    type Meters: f32
 
 This declares a new type `Meters` that is structurally identical to a 32-bit float.  However, note that `Meters` is considered a distinct type from `f32`.  `type` doesn't create type aliases, it creates completely new types.  This is important because, for example, if we also defined a `Liters` type from `f32` we wouldn't want `Meters` and `Liters` to be implicitly interchangeable.
 
@@ -245,9 +251,9 @@ The simplest compound type in Rune is the tuple.  A tuple type is written like t
 
     {i32, i32, f64}
 
-As with any other type, you can either use tuple types directly or create new types out of them with the `type` keyword:
+As with any other type, you can either use tuple types directly or create new named types out of them with the `type` keyword:
 
-    type Foo = {i32, i32, f64}
+    type Foo: {i32, i32, f64}
     
     var a: {i32, i32, f64}
     var b: Foo
@@ -279,7 +285,7 @@ Structs are almost identical to tuples, except that their fields are named:
         baz: f32
     }
 
-    type Bar = struct {
+    type Bar: struct {
         x: i32,
         y: i32,
         baz: f32
