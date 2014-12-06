@@ -22,6 +22,7 @@ configure_file ("${PROJECT_SOURCE_DIR}/config.h.in"
 
 # C++11 for gcc and clang
 if (MSVC)
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_ITERATOR_DEBUG_LEVEL=0")
 else()
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -pthread")
 
