@@ -93,25 +93,17 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 		// TODO: types aren't just names, need to evaluate full type expression here.
 		++token_iter;
 		skip_newlines();
-		if (token_iter->type == IDENTIFIER) {
-			parameters.push_back(NameTypePair {name, ast.store.alloc<TypeExprNode>()});
+		parameters.push_back(NameTypePair {name, parse_type()});
 
-			// Push onto scope
-			if (!scope_stack.push_symbol(name, SymbolType::VARIABLE)) {
-				// Error
-				std::ostringstream msg;
-				msg << "Function definition has a parameter name '" << name << "', but something with that name is already in scope.";
-				parsing_error(*token_iter, msg.str());
-			}
-		} else {
+		// Push parameter onto scope
+		if (!scope_stack.push_symbol(name, SymbolType::VARIABLE)) {
 			// Error
 			std::ostringstream msg;
-			msg << "Invalid type name for function parameter: '" << token_iter->text << "'.";
+			msg << "Function definition has a parameter name '" << name << "', but something with that name is already in scope.";
 			parsing_error(*token_iter, msg.str());
 		}
 
 		// Either a comma or closing square bracket
-		++token_iter;
 		skip_newlines();
 		if (token_iter->type == COMMA)
 			continue;
@@ -132,21 +124,14 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 	skip_newlines();
 	if (token_iter->type == OPERATOR && token_iter->text == "->") {
 		// Return type
-		// TODO: types aren't just names, need to evaluate full type expression here.
 		++token_iter;
 		skip_newlines();
-		if (token_iter->type == IDENTIFIER)
-			node->return_type = ast.store.alloc<TypeExprNode>();
-		else {
-			// Error
-			std::ostringstream msg;
-			msg << "Invalid type name for return type: '" << token_iter->text << "'.";
-			parsing_error(*token_iter, msg.str());
-		}
-		++token_iter;
+		node->return_type = parse_type();
+		
 	} else {
-		// TODO: empty return type
-		node->return_type = ast.store.alloc<TypeExprNode>();
+		// Empty return type
+		node->return_type = ast.store.alloc<Void_T>();
+		++token_iter;
 	}
 
 	// Function body

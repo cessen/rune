@@ -30,33 +30,56 @@ DeclNode* Parser::parse_declaration()
 Type* Parser::parse_type()
 {
     // Signed integers
-	if (token_iter->text == "i8")
+	if (token_iter->text == "i8") {
+	    ++token_iter;
 		return ast.store.alloc<Int8_T>();
-	if (token_iter->text == "i16")
+	}
+	if (token_iter->text == "i16") {
+	    ++token_iter;
 		return ast.store.alloc<Int16_T>();
-	if (token_iter->text == "i32")
+	}
+	if (token_iter->text == "i32") {
+	    ++token_iter;
 		return ast.store.alloc<Int32_T>();
-	if (token_iter->text == "i64")
+	}
+	if (token_iter->text == "i64") {
+	    ++token_iter;
 		return ast.store.alloc<Int64_T>();
+	}
 	
 	// Unsigned integers
-	if (token_iter->text == "u8")
+	if (token_iter->text == "u8") {
+	    ++token_iter;
         return ast.store.alloc<UInt8_T>();
-    if (token_iter->text == "u16")
+	}
+    if (token_iter->text == "u16") {
+        ++token_iter;
         return ast.store.alloc<UInt16_T>();
-    if (token_iter->text == "u32")
+    }
+    if (token_iter->text == "u32") {
+        ++token_iter;
         return ast.store.alloc<UInt32_T>();
-    if (token_iter->text == "u64")
+    }
+    if (token_iter->text == "u64") {
+        ++token_iter;
         return ast.store.alloc<UInt64_T>();
+    }
         
     // Floats
-    if (token_iter->text == "f16")
+    if (token_iter->text == "f16") {
+        ++token_iter;
         return ast.store.alloc<Float16_T>();
-    if (token_iter->text == "f32")
+    }
+    if (token_iter->text == "f32") {
+        ++token_iter;
         return ast.store.alloc<Float32_T>();
-    if (token_iter->text == "f64")
+    }
+    if (token_iter->text == "f64") {
+        ++token_iter;
         return ast.store.alloc<Float64_T>();
+    }
 
+    // Error, unknown type
 	std::ostringstream msg;
 	msg << "Invalid type name: '" << token_iter->text << "'.";
 	parsing_error(*token_iter, msg.str());
@@ -91,20 +114,9 @@ ConstantDeclNode* Parser::parse_constant_decl()
 	if (token_iter->type == COLON) {
 		++token_iter;
 		skip_newlines();
-
-		if (token_iter->type == IDENTIFIER) {
-			// TODO
-			node->type = parse_type();
-			++token_iter;
-		} else {
-			// Error
-			std::ostringstream msg;
-			msg << "Invalid type name: '" << token_iter->text << "'.";
-			parsing_error(*token_iter, msg.str());
-		}
+		node->type = parse_type();
 	} else {
 		// Unknown type
-		// TODO
 		node->type = ast.store.alloc<Void_T>();
 	}
 
@@ -184,20 +196,9 @@ VariableDeclNode* Parser::parse_variable_decl()
 	if (token_iter->type == COLON) {
 		++token_iter;
 		skip_newlines();
-
-		if (token_iter->type == IDENTIFIER) {
-			// TODO
-			node->type = parse_type();
-			++token_iter;
-		} else {
-			// Error
-			std::ostringstream msg;
-			msg << "Invalid type name: '" << token_iter->text << "'.";
-			parsing_error(*token_iter, msg.str());
-		}
+		node->type = parse_type();
 	} else {
 		// Unknown type
-		// TODO
 		node->type = ast.store.alloc<Void_T>();
 	}
 

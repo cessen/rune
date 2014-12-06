@@ -43,21 +43,10 @@ struct StatementNode: ASTNode {
 
 
 /**
- * Type expression node base class.
- */
-struct TypeExprNode: ASTNode {
-	virtual void print(int indent) {
-		print_indent(indent);
-		std::cout << "EMPTY_TypeExpr";
-	}
-};
-
-
-/**
  * Expression node base class.
  */
 struct ExprNode: StatementNode {
-	TypeExprNode* eval_type;  // Type that the expression evaluates to
+	Type* eval_type;  // Type that the expression evaluates to
 
 	virtual void print(int indent) {
 		print_indent(indent);
@@ -145,7 +134,7 @@ struct LiteralNode: ExprNode {
 
 struct NameTypePair {
 	StringSlice name;
-	TypeExprNode* type;
+	Type* type;
 
 	void print(int indent) {
 		print_indent(indent);
@@ -234,7 +223,7 @@ struct FloatLiteralNode: LiteralNode {
 
 struct FuncLiteralNode: LiteralNode {
 	Slice<NameTypePair> parameters;
-	TypeExprNode* return_type;
+	Type* return_type;
 	ScopeNode* body;
 
 	virtual void print(int indent) {
