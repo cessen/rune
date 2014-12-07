@@ -66,7 +66,7 @@ start_over:
 				next_char();
 			}
 			while (is_ident_char(cur_c));
-			
+
 			token.text.set_end(str_iter);
 			token.type = IDENTIFIER;
 
@@ -78,7 +78,7 @@ start_over:
 		else if (in_generic() && cur_c[0] == '>') {
 			pop_generic(true);
 			next_char();
-			
+
 			token.text.set_end(str_iter);
 			token.type = RGENERIC;
 		}
@@ -89,7 +89,7 @@ start_over:
 				next_char();
 			}
 			while (is_op_char(cur_c));
-			
+
 			token.text.set_end(str_iter);
 			token.type = OPERATOR;
 		}
@@ -160,7 +160,7 @@ start_over:
 					next_char();
 					break;
 			}
-			
+
 			token.text.set_end(str_iter);
 		}
 
@@ -189,7 +189,7 @@ start_over:
 		// If it's anything else
 		else if (cur_c != "") {
 			next_char();
-			
+
 			token.text.set_end(str_iter);
 			token.type = UNKNOWN;
 		}
