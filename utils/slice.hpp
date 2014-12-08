@@ -50,6 +50,14 @@ public:
 	T* end() {
 		return _data + _size;
 	}
+
+	T const * begin() const {
+		return _data;
+	}
+
+	T const * end() const {
+		return _data + _size;
+	}
 };
 
 #endif // SLICE_HPP

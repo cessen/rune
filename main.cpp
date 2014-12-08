@@ -6,6 +6,7 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "ast.hpp"
+#include "c_gen.hpp"
 
 int main(int argc, char** argv)
 {
@@ -32,18 +33,24 @@ int main(int argc, char** argv)
 
 	std::cout << "Lexing..." << std::endl;
 	auto tokens = lex_string(contents);
-	if (argc > 2) {
-		for (auto& t: tokens) {
-			std::cout << "[L" << t.line + 1 << ", C" << t.column << ", " << t.type << "]:\t" << " " << t.text << std::endl;
-		}
+	for (auto& t: tokens) {
+		std::cout << "[L" << t.line + 1 << ", C" << t.column << ", " << t.type << "]:\t" << " " << t.text << std::endl;
 	}
 
+	AST ast;
 	try {
 		std::cout << "Parsing..." << std::endl;
-		auto ast = parse_tokens(argv[1], tokens);
+		ast = parse_tokens(argv[1], tokens);
 		ast.print();
 	}
 	catch (ParseError e) {
+	}
+
+	// Write C output
+	if (argc > 2) {
+		std::ofstream f_out(argv[2], std::ios::out | std::ios::binary);
+		if (f_out)
+			gen_c_code(ast, f_out);
 	}
 
 	return 0;

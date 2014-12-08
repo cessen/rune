@@ -48,6 +48,7 @@ include_directories ("${PROJECT_BINARY_DIR}"
 					 "${PROJECT_SOURCE_DIR}"
 					 "${PROJECT_SOURCE_DIR}/test"
 					 "${PROJECT_SOURCE_DIR}/ast"
+					 "${PROJECT_SOURCE_DIR}/codegen"
 					 "${PROJECT_SOURCE_DIR}/lexer"
 					 "${PROJECT_SOURCE_DIR}/parser"
 					 "${PROJECT_SOURCE_DIR}/tokens"
@@ -59,6 +60,7 @@ include_directories ("${PROJECT_BINARY_DIR}"
 # Build
 #--------------------------------------
 add_subdirectory(ast)
+add_subdirectory(codegen)
 add_subdirectory(lexer)
 add_subdirectory(parser)
 add_subdirectory(utils)
@@ -72,6 +74,7 @@ add_subdirectory(utils)
 
 # Main library
 set (RUNE_LIB
+	codegen
 	lexer
 	parser
 	)

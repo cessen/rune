@@ -29,7 +29,7 @@ enum struct TypeClass {
  * Base class for all other types.
  */
 struct Type {
-	virtual TypeClass type_class() = 0;
+	virtual TypeClass type_class() const = 0;
 	virtual void print(int indent) {
 		for (int i = 0; i < indent; ++i) {
 			std::cout << "\t";
@@ -44,7 +44,7 @@ struct Type {
  * return anything.
  */
 struct Void_T: Type {
-	virtual TypeClass type_class() {
+	virtual TypeClass type_class() const {
 		return TypeClass::Void;
 	}
 	virtual void print(int indent) {
@@ -63,7 +63,7 @@ struct Void_T: Type {
 struct Atom_T: Type {
 	StringSlice value;
 
-	virtual TypeClass type_class() {
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom;
 	}
 };
@@ -186,7 +186,7 @@ struct CodePoint_T : Atom_T {
 
 // A raw pointer.  Points at a single piece of data in memory.
 struct Pointer_T: Type {
-	virtual TypeClass type_class() {
+	virtual TypeClass type_class() const {
 		return TypeClass::Pointer;
 	}
 
@@ -196,7 +196,7 @@ struct Pointer_T: Type {
 
 // A raw slice.  Points at an array of data in memory.
 struct Slice_T: Type {
-	virtual TypeClass type_class() {
+	virtual TypeClass type_class() const {
 		return TypeClass::Slice;
 	}
 
@@ -212,7 +212,7 @@ struct Slice_T: Type {
 
 // An array.  Contains a fixed number of elements of the same type.
 struct Array_T: Type {
-	virtual TypeClass type_class() {
+	virtual TypeClass type_class() const {
 		return TypeClass::Array;
 	}
 
@@ -223,7 +223,7 @@ struct Array_T: Type {
 
 // A tuple.  Contains a fixed number of elements of varying types.
 struct Tuple_T: Type {
-	virtual TypeClass type_class() {
+	virtual TypeClass type_class() const {
 		return TypeClass::Tuple;
 	}
 
@@ -234,7 +234,7 @@ struct Tuple_T: Type {
 // A struct.  A named type that Contains a fixed number of elements of
 // varying types in named fields.
 struct Struct_T: Type {
-	virtual TypeClass type_class() {
+	virtual TypeClass type_class() const {
 		return TypeClass::Struct;
 	}
 
@@ -250,7 +250,7 @@ struct Struct_T: Type {
 ///////////////////////////////////////////////////////////
 
 struct Function_T: Type {
-	virtual TypeClass type_class() {
+	virtual TypeClass type_class() const {
 		return TypeClass::Function;
 	}
 
