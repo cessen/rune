@@ -256,6 +256,23 @@ struct Function_T: Type {
 
 	Slice<Type*> parameter_ts;  // The types of the parameters of the function
 	Type* return_t;  // The return type of the function
+
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "fn [";
+		bool first = true;
+		for (const auto& t: parameter_ts) {
+			if (!first) {
+				std::cout << ", ";
+			}
+			else {
+				first = false;
+			}
+			t->print(0);
+		}
+		std::cout << "] -> ";
+		return_t->print(0);
+	}
 };
 
 #endif // TYPE_HPP

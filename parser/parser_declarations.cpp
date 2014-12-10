@@ -152,6 +152,20 @@ ConstantDeclNode* Parser::parse_constant_decl()
 	// Get initializer
 	node->initializer = parse_expression();
 
+	// If it's a function literal, also set the type
+	// TODO: this is copy & paste
+	if (dynamic_cast<FuncLiteralNode*>(node->initializer)) {
+		auto init = dynamic_cast<FuncLiteralNode*>(node->initializer);
+		auto init_t = ast.store.alloc<Function_T>();
+		std::vector<Type*> ts;
+		for (auto& p: init->parameters) {
+			ts.push_back(p.type);
+		}
+		init_t->parameter_ts = ast.store.alloc_from_iters(ts.begin(), ts.end());
+		init_t->return_t = init->return_type;
+		node->type = init_t;
+	}
+
 	if (!token_is_terminator(*token_iter)) {
 		// Error
 		std::ostringstream msg;
@@ -211,6 +225,20 @@ VariableDeclNode* Parser::parse_variable_decl()
 	if (token_iter->type == OPERATOR && token_iter->text == "=") {
 		++token_iter;
 		node->initializer = parse_expression();
+
+		// If it's a function literal, also set the type
+		// TODO: this is copy & paste
+		if (dynamic_cast<FuncLiteralNode*>(node->initializer)) {
+			auto init = dynamic_cast<FuncLiteralNode*>(node->initializer);
+			auto init_t = ast.store.alloc<Function_T>();
+			std::vector<Type*> ts;
+			for (auto& p: init->parameters) {
+				ts.push_back(p.type);
+			}
+			init_t->parameter_ts = ast.store.alloc_from_iters(ts.begin(), ts.end());
+			init_t->return_t = init->return_type;
+			node->type = init_t;
+		}
 	}
 	else {
 		// No initializer
@@ -262,8 +290,17 @@ ConstantDeclNode* Parser::parse_func_definition()
 	skip_newlines();
 	node->initializer = parse_function_literal(false);
 
-	// TODO: type
-	node->type = ast.store.alloc<Void_T>();
+	// Set the type
+	// TODO: this is copy & paste
+	auto init = dynamic_cast<FuncLiteralNode*>(node->initializer);
+	auto init_t = ast.store.alloc<Function_T>();
+	std::vector<Type*> ts;
+	for (auto& p: init->parameters) {
+		ts.push_back(p.type);
+	}
+	init_t->parameter_ts = ast.store.alloc_from_iters(ts.begin(), ts.end());
+	init_t->return_t = init->return_type;
+	node->type = init_t;
 
 	return node;
 }
