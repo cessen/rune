@@ -15,8 +15,6 @@ void gen_c_code(const AST& ast, std::ostream& f)
 	for (const auto& decl: ast.root->declarations) {
 		gen_c_decl(decl, f);
 	}
-
-	f << "int main(int argc, char** argv) { return 0; }\n";
 }
 
 
@@ -85,6 +83,53 @@ static void gen_c_type(const Type* t, std::ostream& f)
 	}
 }
 
+static void gen_c_literal(const LiteralNode* literal, std::ostream& f)
+{
+	if (const IntegerLiteralNode* node = dynamic_cast<const IntegerLiteralNode*>(literal)) {
+		f << node->text;
+	}
+}
+
+static void gen_c_expression(const ExprNode* expression, std::ostream& f)
+{
+	if (const LiteralNode* node = dynamic_cast<const LiteralNode*>(expression)) {
+		gen_c_literal(node, f);
+	}
+	if (const VariableNode* node = dynamic_cast<const VariableNode*>(expression)) {
+		f << node->name;
+	}
+	else if (const FuncCallNode* node = dynamic_cast<const FuncCallNode*>(expression)) {
+		if (node->name == "+" && node->parameters.size() == 2) {
+			f << "(";
+			gen_c_expression(node->parameters[0], f);
+			f << " + ";
+			gen_c_expression(node->parameters[1], f);
+			f << ")";
+		}
+		else {
+			f << node->name << "(";
+			bool first = true;
+			for (auto s : node->parameters) {
+				if (first)
+					first = false;
+				else
+					f << ", ";
+				gen_c_expression(s, f);
+			}
+			f << ")";
+		}
+	}
+}
+
+static void gen_c_statement(const StatementNode* statement, std::ostream& f)
+{
+	if (const ReturnNode* node = dynamic_cast<const ReturnNode*>(statement)) {
+		f << "return ";
+		gen_c_expression(node->expression, f);
+		f<< ";\n";
+	}
+
+}
 
 static void gen_c_decl(const DeclNode* decl, std::ostream& f)
 {
@@ -121,7 +166,8 @@ static void gen_c_decl(const DeclNode* decl, std::ostream& f)
 
 			// Body
 			f << " {\n";
-
+			for (auto& s: fn->body->statements)
+				gen_c_statement(s, f);
 			f << "}\n\n";
 		}
 		// Variable

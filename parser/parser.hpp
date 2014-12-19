@@ -115,6 +115,7 @@ private:
 
 	// parser_statements.cpp
 	StatementNode* parse_statement();
+	ReturnNode* parse_return();
 
 	// parser_scope.cpp
 	ScopeNode* parse_scope();

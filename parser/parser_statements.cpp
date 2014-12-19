@@ -9,8 +9,7 @@ StatementNode* Parser::parse_statement()
 	switch (token_iter->type) {
 		// Return statement
 		case K_RETURN: {
-			// TODO
-			parsing_error(*token_iter, "TODO: Return statements haven't been implemented yet.");
+			return parse_return();
 		}
 
 		// Declaration
@@ -41,4 +40,12 @@ StatementNode* Parser::parse_statement()
 			throw 0; // Silence warnings about not returning, parsing_error throws anyway
 		}
 	}
+}
+
+ReturnNode* Parser::parse_return()
+{
+	auto node = ast.store.alloc<ReturnNode>();
+	token_iter++;
+	node->expression = parse_expression();
+	return node;
 }

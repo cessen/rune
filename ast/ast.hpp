@@ -153,6 +153,18 @@ struct NameTypePair {
 
 
 
+struct ReturnNode: StatementNode {
+	ExprNode* expression;
+
+	virtual void print(int indent)
+	{
+		print_indent(indent);
+		std::cout << "RETURN" << std::endl;
+		expression->print(indent + 1);
+	}
+};
+
+
 
 ////////////////////////////////////////////////////////////////
 // Declarations
