@@ -65,7 +65,7 @@ struct DeclNode : StatementNode {
 	StringSlice name;
 	bool mut;
 	Type* type;
-	ExprNode* initializer;
+	ExprNode* initializer = nullptr;
 
 	virtual void print(int indent)
 	{
@@ -316,6 +316,21 @@ struct FuncCallNode: ExprNode {
 			std::cout << std::endl;
 			p->print(indent+1);
 		}
+	}
+};
+
+struct AssignmentNode: ExprNode {
+	ExprNode* lhs;
+	ExprNode* rhs;
+
+	virtual void print(int indent)
+	{
+		print_indent(indent);
+		std::cout << "ASSIGNMENT\n";
+		lhs->print(indent+1);
+		std::cout << std::endl;
+		rhs->print(indent+1);
+		std::cout << std::endl;
 	}
 };
 

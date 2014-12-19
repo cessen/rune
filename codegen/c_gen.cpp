@@ -95,8 +95,13 @@ static void gen_c_expression(const ExprNode* expression, std::ostream& f)
 	if (const LiteralNode* node = dynamic_cast<const LiteralNode*>(expression)) {
 		gen_c_literal(node, f);
 	}
-	if (const VariableNode* node = dynamic_cast<const VariableNode*>(expression)) {
+	else if (const VariableNode* node = dynamic_cast<const VariableNode*>(expression)) {
 		f << node->name;
+	}
+	else if (const AssignmentNode* node = dynamic_cast<const AssignmentNode*>(expression)) {
+		gen_c_expression(node->lhs, f);
+		f << " = ";
+		gen_c_expression(node->rhs, f);
 	}
 	else if (const FuncCallNode* node = dynamic_cast<const FuncCallNode*>(expression)) {
 		if (node->name == "+" && node->parameters.size() == 2) {
@@ -126,9 +131,15 @@ static void gen_c_statement(const StatementNode* statement, std::ostream& f)
 	if (const ReturnNode* node = dynamic_cast<const ReturnNode*>(statement)) {
 		f << "return ";
 		gen_c_expression(node->expression, f);
-		f<< ";\n";
+	}
+	else if (auto node = dynamic_cast<const DeclNode*>(statement)) {
+		gen_c_decl(node, f);
+	}
+	else if (auto node = dynamic_cast<const ExprNode*>(statement)) {
+		gen_c_expression(node, f);
 	}
 
+	f<< ";\n";
 }
 
 static void gen_c_decl(const DeclNode* decl, std::ostream& f)
@@ -172,6 +183,14 @@ static void gen_c_decl(const DeclNode* decl, std::ostream& f)
 		}
 		// Variable
 		else {
+		}
+	}
+	else if (const VariableDeclNode* node = dynamic_cast<const VariableDeclNode*>(decl)) {
+		gen_c_type(node->type, f);
+		f << " " << node->name;
+		if (node->initializer) {
+			f << " = ";
+			gen_c_expression(node->initializer, f);
 		}
 	}
 }

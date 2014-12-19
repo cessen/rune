@@ -90,18 +90,10 @@ FuncCallNode* Parser::parse_unary_func_call()
 // Binary infix function call syntax
 ExprNode* Parser::parse_binary_func_call(ExprNode* lhs, int lhs_prec)
 {
-	auto node = ast.store.alloc<FuncCallNode>();
 	ExprNode* rhs;
 
-	if (!token_is_const_function(*token_iter)) {
-		// Error
-		std::ostringstream msg;
-		msg << "Invalid name for binary function call: '" << token_iter->text << "'.";
-		parsing_error(*token_iter, msg.str());
-	}
-
 	// Op info
-	node->name = token_iter->text;
+	StringSlice name = token_iter->text;
 	const int my_prec = get_op_prec(token_iter->text);
 
 	auto pre_rhs = token_iter;
@@ -111,35 +103,55 @@ ExprNode* Parser::parse_binary_func_call(ExprNode* lhs, int lhs_prec)
 	rhs = parse_primary_expression();
 
 	// Handle precedence
+	bool parse_more = false;
 	while (true) {
 		if (token_is_terminator(*token_iter)) {
-			node->parameters = ast.store.alloc_array<ExprNode*>(2);
-			node->parameters[0] = lhs;
-			node->parameters[1] = rhs;
+			parse_more = false;
 			break;
 		}
 		else if (lhs_prec >= my_prec) {
 			token_iter = pre_rhs;
 			return lhs;
 		}
-		else if (token_is_const_function(*token_iter)) {
+		else {
 			if (get_op_prec(token_iter->text) > my_prec) {
-				rhs = parse_binary_func_call(std::move(rhs), my_prec);
+				rhs = parse_binary_func_call(rhs, my_prec);
 			}
 			else {
-				node->parameters = ast.store.alloc_array<ExprNode*>(2);
-				node->parameters[0] = lhs;
-				node->parameters[1] = rhs;
-				return parse_binary_func_call(std::move(node), lhs_prec);
+				parse_more = true;
+				break;
 			}
-		}
-		else {
-			// Error
-			std::ostringstream msg;
-			msg << "GAHWHATDOESTHISMEAN??? parse_binary_func_call()";
-			parsing_error(*token_iter, msg.str());
 		}
 	}
 
-	return node;
+	// Create node
+	ExprNode* node;
+	if (pre_rhs->text == "=") {
+		auto temp_node = ast.store.alloc<AssignmentNode>();
+		temp_node->lhs = lhs;
+		temp_node->rhs = rhs;
+		node = temp_node;
+	}
+	else if (token_is_const_function(*pre_rhs)) {
+		auto temp_node = ast.store.alloc<FuncCallNode>();
+		temp_node->name = name;
+		temp_node->parameters = ast.store.alloc_array<ExprNode*>(2);
+		temp_node->parameters[0] = lhs;
+		temp_node->parameters[1] = rhs;
+		node = temp_node;
+	}
+	else {
+		// Error
+		std::ostringstream msg;
+		msg << "Invalid name for binary function call or operator: '" << token_iter->text << "'.";
+		parsing_error(*token_iter, msg.str());
+	}
+
+	// Return appropriate case
+	if (parse_more) {
+		return parse_binary_func_call(node, lhs_prec);
+	}
+	else {
+		return node;
+	}
 }

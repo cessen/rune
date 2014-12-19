@@ -44,6 +44,7 @@ int main(int argc, char** argv)
 		ast.print();
 	}
 	catch (ParseError e) {
+		throw e;
 	}
 
 	// Write C output

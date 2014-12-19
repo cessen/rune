@@ -171,6 +171,7 @@ private:
 	bool token_is_const_function(Token t)
 	{
 		if (t.type == OPERATOR) {
+			// TODO
 			return true;
 		}
 		else if (t.type == IDENTIFIER &&
