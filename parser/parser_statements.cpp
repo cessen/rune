@@ -7,7 +7,7 @@
 StatementNode* Parser::parse_statement()
 {
 	switch (token_iter->type) {
-			// Return statement
+		// Return statement
 		case K_RETURN: {
 			// TODO
 			parsing_error(*token_iter, "TODO: Return statements haven't been implemented yet.");

@@ -42,7 +42,7 @@ ExprNode* Parser::parse_primary_expression()
 			return parse_scope();
 			break;
 
-			// Literal
+		// Literal
 		case K_FN:
 		case INTEGER_LIT:
 		case FLOAT_LIT:

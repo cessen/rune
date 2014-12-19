@@ -23,7 +23,8 @@ class Lexer
 
 
 public:
-	Lexer(const std::string::const_iterator& str_iter, const std::string::const_iterator& str_iter_end): str_iter {str_iter}, str_iter_end {str_iter_end} {
+	Lexer(const std::string::const_iterator& str_iter, const std::string::const_iterator& str_iter_end): str_iter {str_iter}, str_iter_end {str_iter_end}
+	{
 		cur_utf8(&cur_c, str_iter, str_iter_end);
 	}
 
@@ -33,7 +34,8 @@ public:
 	 *
 	 * Always leaves the iterator on the last unconsumed character.
 	 */
-	Token lex_token() {
+	Token lex_token()
+	{
 start_over:
 
 		// Get past any whitespace
@@ -205,7 +207,8 @@ start_over:
 
 
 private:
-	void next_char() {
+	void next_char()
+	{
 		if (cur_c == "\n") {
 			++line_number;
 			column_number = 0;
@@ -218,7 +221,8 @@ private:
 		cur_utf8(&cur_c, str_iter, str_iter_end);
 	}
 
-	void init_token() {
+	void init_token()
+	{
 		token.type = UNKNOWN;
 		token.line = line_number;
 		token.column = column_number;
@@ -228,16 +232,19 @@ private:
 
 
 	// Some utility functions for lexing generic delimeters properly
-	void push_generic(bool state) {
+	void push_generic(bool state)
+	{
 		generic_stack.push_back(state);
 	}
 
-	void pop_generic(bool state) {
+	void pop_generic(bool state)
+	{
 		if (generic_stack.size() > 0 && generic_stack.back() == state)
 			generic_stack.pop_back();
 	}
 
-	bool in_generic() {
+	bool in_generic()
+	{
 		if (generic_stack.size() > 0)
 			return generic_stack.back();
 		else
@@ -245,7 +252,8 @@ private:
 	}
 
 
-	void lex_string_literal() {
+	void lex_string_literal()
+	{
 		// Basic string literal
 		if (cur_c == "\"") {
 			next_char();
@@ -313,7 +321,8 @@ private:
 	}
 
 
-	bool lex_comment() {
+	bool lex_comment()
+	{
 		// Returns if it was a doc comment or not, so that non-doc comments
 		// can be skipped;
 		bool is_doc = false;
@@ -342,7 +351,8 @@ private:
 	}
 
 
-	void lex_number_literal() {
+	void lex_number_literal()
+	{
 		if (is_digit_char(cur_c)) {
 			int dot_count = 0;
 			do {

@@ -24,7 +24,8 @@ static void print_indent(int indent)
 struct ASTNode {
 	virtual ~ASTNode() {}
 
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		print_indent(indent);
 		std::cout << "EMPTY_ASTNode";
 	}
@@ -35,7 +36,8 @@ struct ASTNode {
  * Base class for Expression and Declaration nodes.
  */
 struct StatementNode: ASTNode {
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		print_indent(indent);
 		std::cout << "EMPTY_Statement";
 	}
@@ -48,7 +50,8 @@ struct StatementNode: ASTNode {
 struct ExprNode: StatementNode {
 	Type* eval_type;  // Type that the expression evaluates to
 
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		print_indent(indent);
 		std::cout << "EMPTY_Expr";
 	}
@@ -64,7 +67,8 @@ struct DeclNode : StatementNode {
 	Type* type;
 	ExprNode* initializer;
 
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		print_indent(indent);
 		std::cout << "EMPTY_Decl";
 	}
@@ -79,7 +83,8 @@ struct NamespaceNode: ASTNode {
 	Slice<NamespaceNode*> namespaces;
 	Slice<DeclNode*> declarations;
 
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		print_indent(indent);
 		std::cout << "namespace " << name << " {" << std::endl;
 		for (auto& n: namespaces) {
@@ -102,7 +107,8 @@ struct NamespaceNode: ASTNode {
 struct ScopeNode: ExprNode {
 	Slice<StatementNode*> statements;
 
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		print_indent(indent);
 		std::cout << "(\n";
 		for (auto &e: statements) {
@@ -119,7 +125,8 @@ struct ScopeNode: ExprNode {
  * Literal node base class.
  */
 struct LiteralNode: ExprNode {
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		print_indent(indent);
 		std::cout << "EMPTY_Literal";
 	}
@@ -136,7 +143,8 @@ struct NameTypePair {
 	StringSlice name;
 	Type* type;
 
-	void print(int indent) {
+	void print(int indent)
+	{
 		print_indent(indent);
 		std::cout << name << ":\n";
 		type->print(indent+1);
@@ -151,7 +159,8 @@ struct NameTypePair {
 ////////////////////////////////////////////////////////////////
 
 struct ConstantDeclNode: DeclNode {
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		// Name
 		print_indent(indent);
 		std::cout << "CONSTANT_DECL " << name << std::endl;
@@ -171,7 +180,8 @@ struct ConstantDeclNode: DeclNode {
 };
 
 struct VariableDeclNode: DeclNode {
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		// Name
 		print_indent(indent);
 		std::cout << "VARIABLE_DECL " << name;
@@ -210,7 +220,8 @@ struct EnumDeclNode: DeclNode {
 
 struct IntegerLiteralNode: LiteralNode {
 	StringSlice text;
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		print_indent(indent);
 		std::cout << text.to_string();
 	}
@@ -226,7 +237,8 @@ struct FuncLiteralNode: LiteralNode {
 	Type* return_type;
 	ScopeNode* body;
 
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		// Function
 		print_indent(indent);
 		std::cout << "FUNCTION" << std::endl;
@@ -265,7 +277,8 @@ struct VariableNode: ExprNode {
 	VariableNode(StringSlice name): name {name}
 	{}
 
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		// Name
 		print_indent(indent);
 		std::cout << name;
@@ -280,7 +293,8 @@ struct FuncCallNode: ExprNode {
 	StringSlice name;
 	Slice<ExprNode*> parameters;
 
-	virtual void print(int indent) {
+	virtual void print(int indent)
+	{
 		// Name
 		print_indent(indent);
 		std::cout << "CALL " << name;
@@ -303,7 +317,8 @@ public:
 	NamespaceNode* root;
 	MemoryArena<> store; // Memory store for nodes
 
-	void print() {
+	void print()
+	{
 		root->print(0);
 	}
 };
