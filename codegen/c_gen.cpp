@@ -14,6 +14,7 @@ void gen_c_code(const AST& ast, std::ostream& f)
 	// Declarations
 	for (const auto& decl: ast.root->declarations) {
 		gen_c_decl(decl, f);
+		f << ";\n";
 	}
 }
 
@@ -179,7 +180,7 @@ static void gen_c_decl(const DeclNode* decl, std::ostream& f)
 			f << " {\n";
 			for (auto& s: fn->body->statements)
 				gen_c_statement(s, f);
-			f << "}\n\n";
+			f << "}";
 		}
 		// Variable
 		else {
@@ -188,9 +189,16 @@ static void gen_c_decl(const DeclNode* decl, std::ostream& f)
 	else if (const VariableDeclNode* node = dynamic_cast<const VariableDeclNode*>(decl)) {
 		gen_c_type(node->type, f);
 		f << " " << node->name;
-		if (node->initializer) {
+		if (!dynamic_cast<const EmptyExprNode*>(node->initializer)) {
 			f << " = ";
 			gen_c_expression(node->initializer, f);
 		}
+	}
+	else if (const ConstantDeclNode* node = dynamic_cast<const ConstantDeclNode*>(decl)) {
+		f << "const ";
+		gen_c_type(node->type, f);
+		f << " " << node->name;
+		f << " = ";
+		gen_c_expression(node->initializer, f);
 	}
 }

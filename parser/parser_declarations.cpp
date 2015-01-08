@@ -243,7 +243,7 @@ VariableDeclNode* Parser::parse_variable_decl()
 	else {
 		// No initializer
 		// TODO
-		node->initializer = ast.store.alloc<ExprNode>();
+		node->initializer = ast.store.alloc<EmptyExprNode>();
 	}
 
 	if (!token_is_terminator(*token_iter)) {

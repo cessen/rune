@@ -50,11 +50,7 @@ struct StatementNode: ASTNode {
 struct ExprNode: StatementNode {
 	Type* eval_type;  // Type that the expression evaluates to
 
-	virtual void print(int indent)
-	{
-		print_indent(indent);
-		std::cout << "EMPTY_Expr";
-	}
+	virtual void print(int indent) = 0;
 };
 
 
@@ -63,7 +59,6 @@ struct ExprNode: StatementNode {
  */
 struct DeclNode : StatementNode {
 	StringSlice name;
-	bool mut;
 	Type* type;
 	ExprNode* initializer = nullptr;
 
@@ -191,7 +186,8 @@ struct ConstantDeclNode: DeclNode {
 	}
 };
 
-struct VariableDeclNode: DeclNode {
+struct VariableDeclNode : DeclNode {
+	bool mut;
 	virtual void print(int indent)
 	{
 		// Name
@@ -281,6 +277,14 @@ struct FuncLiteralNode: LiteralNode {
 ////////////////////////////////////////////////////////////////
 // Expressions
 ////////////////////////////////////////////////////////////////
+
+struct EmptyExprNode : ExprNode {
+	virtual void print(int indent)
+	{
+		print_indent(indent);
+		std::cout << "EMPTY_Expr";
+	}
+};
 
 struct VariableNode: ExprNode {
 	StringSlice name;

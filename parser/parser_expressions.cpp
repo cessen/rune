@@ -77,6 +77,10 @@ ExprNode* Parser::parse_primary_expression()
 				++token_iter;
 				return var;
 			}
+
+			std::ostringstream msg;
+			msg << "Unknown identifier: '" << token_iter->text << "'";
+			parsing_error(*token_iter, msg.str());
 			break;
 		}
 

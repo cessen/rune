@@ -191,7 +191,8 @@ private:
 	{
 		if (t.type == IDENTIFIER &&
 		        scope_stack.is_symbol_in_scope(t.text) &&
-		        scope_stack.symbol_type(t.text) == SymbolType::VARIABLE
+				scope_stack.symbol_type(t.text) == SymbolType::VARIABLE ||
+				scope_stack.symbol_type(t.text) == SymbolType::CONST_VARIABLE
 		   ) {
 			return true;
 		}
