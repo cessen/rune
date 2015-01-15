@@ -26,3 +26,67 @@ bool is_node_constant(ASTNode* node) {
 
 	return false;
 }
+
+static bool _check_types_helper(ASTNode *_node)
+{
+	if (_node == nullptr)
+		return true;
+
+	if (auto node = dynamic_cast<NamespaceNode*>(_node)) {
+		for (auto i : node->namespaces) {
+			if (!_check_types_helper(i))
+				return false;
+		}
+		for (auto i : node->declarations) {
+			if (!_check_types_helper(i))
+				return false;
+		}
+	}
+	else if (auto node = dynamic_cast<DeclNode*>(_node)) {
+		if (!_check_types_helper(node->initializer))
+			return false;
+
+		//TODO Handle this better
+		if (node->initializer->eval_type == nullptr)
+			return true;
+
+		if (*node->type != *node->initializer->eval_type)
+			return false;
+	}
+	else if (auto node = dynamic_cast<ScopeNode*>(_node)) {
+		for (auto i : node->statements) {
+			if (!_check_types_helper(i))
+				return false;
+		}
+	}
+	else if (auto node = dynamic_cast<ReturnNode*>(_node)) {
+		if (!_check_types_helper(node->expression))
+			return false;
+	}
+	else if (auto node = dynamic_cast<VariableNode*>(_node)) {
+		//TODO
+		node->eval_type = node->declaration->type; // Propigate type from declaration
+	}
+	else if (auto node = dynamic_cast<ConstantNode*>(_node)) {
+		//TODO
+		node->eval_type = node->declaration->type; // Propigate type from declaration
+	}
+	else if (auto node = dynamic_cast<FuncLiteralNode*>(_node)) {
+		if (!_check_types_helper(node->body))
+			return false;
+	}
+	else if (auto node = dynamic_cast<FuncCallNode*>(_node)) {
+		//TODO
+	}
+	else if (auto node = dynamic_cast<AssignmentNode*>(_node)) {
+		if (*node->lhs->eval_type != *node->rhs->eval_type)
+			return false;
+	}
+
+	return true;
+}
+
+bool AST::check_types()
+{
+	return _check_types_helper(this->root);
+}

@@ -1,5 +1,6 @@
 const c: i32 = 456
 var a: i32 #= 31
+#var bar: i8 = c
 
 const foo = fn [x: i32, y: i32] -> i32 (
     return x + y
@@ -8,7 +9,6 @@ const foo = fn [x: i32, y: i32] -> i32 (
 fn main[] -> i32 (
     #print["%d, %d, %d\n", a+b, b+c, foo[a, b]]
 	val d: i32 = 42
-	val b: i32 = 5
-	b = 0
+	#val b: i8 = a
 	return foo[d, c]
 )

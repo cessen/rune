@@ -33,58 +33,72 @@ static void gen_c_type(const Type* t, std::ostream& f)
 	switch (t->type_class()) {
 		case TypeClass::Void: {
 			f << "void";
+			break;
 		}
 
-		case TypeClass::Atom: {
-			// Byte
-			if (dynamic_cast<const Byte_T*>(t)) {
-				f << "uint8_t";
-			}
-			// Int8
-			else if (dynamic_cast<const Int8_T*>(t)) {
-				f << "int8_t";
-			}
-			// Int16
-			else if (dynamic_cast<const Int16_T*>(t)) {
-				f << "int16_t";
-			}
-			// Int32
-			else if (dynamic_cast<const Int32_T*>(t)) {
-				f << "int32_t";
-			}
-			// Int64
-			else if (dynamic_cast<const Int64_T*>(t)) {
-				f << "int64_t";
-			}
-			// UInt8
-			else if (dynamic_cast<const UInt8_T*>(t)) {
-				f << "uint8_t";
-			}
-			// UInt16
-			else if (dynamic_cast<const UInt16_T*>(t)) {
-				f << "uint16_t";
-			}
-			// UInt32
-			else if (dynamic_cast<const UInt32_T*>(t)) {
-				f << "uint32_t";
-			}
-			// UInt64
-			else if (dynamic_cast<const UInt64_T*>(t)) {
-				f << "uint64_t";
-			}
-			// Float16
-			else if (dynamic_cast<const Float16_T*>(t)) {
-				// TODO: we don't have an f16 type implementation
-				f << "uint16_t";
-			}
-			// Float32
-			else if (dynamic_cast<const Float32_T*>(t)) {
-				f << "float";
-			}
-			// Float64
-			else if (dynamic_cast<const Float64_T*>(t)) {
-				f << "double";
-			}
+		case TypeClass::Atom_Byte: {
+			f << "uint8_t";
+			break;
+		}
+
+		case TypeClass::Atom_Int8: {
+			f << "int8_t";
+			break;
+		}
+
+		case TypeClass::Atom_Int16: {
+			f << "int16_t";
+			break;
+		}
+
+		case TypeClass::Atom_Int32: {
+			f << "int32_t";
+			break;
+		}
+
+		case TypeClass::Atom_Int64: {
+			f << "int64_t";
+			break;
+		}
+
+		case TypeClass::Atom_UInt8: {
+			f << "uint8_t";
+			break;
+		}
+
+		case TypeClass::Atom_UInt16: {
+			f << "uint16_t";
+			break;
+		}
+
+		case TypeClass::Atom_UInt32: {
+			f << "uint32_t";
+			break;
+		}
+
+		case TypeClass::Atom_UInt64: {
+			f << "uint64_t";
+			break;
+		}
+
+		case TypeClass::Atom_Float16: {
+			// TODO: we don't have an f16 type implementation
+			f << "uint16_t";
+			break;
+		}
+
+		case TypeClass::Atom_Float32: {
+			f << "float";
+			break;
+		}
+
+		case TypeClass::Atom_Float64: {
+			f << "double";
+			break;
+		}
+
+		case TypeClass::Atom_CodePoint: {
+			f << "uint32_t";
 			break;
 		}
 

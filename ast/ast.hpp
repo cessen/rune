@@ -50,7 +50,7 @@ struct StatementNode: ASTNode {
  * Expression node base class.
  */
 struct ExprNode: StatementNode {
-	Type* eval_type;  // Type that the expression evaluates to
+	Type* eval_type = nullptr;  // Type that the expression evaluates to
 
 	virtual void print(int indent) = 0;
 };
@@ -317,12 +317,8 @@ struct ConstantNode : ExprNode {
 	}
 };
 
-struct FuncNode: ExprNode {
-	StringSlice name;
-};
-
 struct FuncCallNode: ExprNode {
-	StringSlice name;
+	StringSlice name; //TODO change to declaration pointer
 	Slice<ExprNode*> parameters;
 
 	virtual void print(int indent)
@@ -368,6 +364,8 @@ public:
 	{
 		root->print(0);
 	}
+
+	bool check_types();
 };
 
 

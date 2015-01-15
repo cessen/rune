@@ -11,6 +11,19 @@ enum struct TypeClass {
 	Void,
 
 	Atom, // One of the fundamental types, like int, float, etc.
+	Atom_Byte,
+	Atom_Int8,
+	Atom_Int16,
+	Atom_Int32,
+	Atom_Int64,
+	Atom_UInt8,
+	Atom_UInt16,
+	Atom_UInt32,
+	Atom_UInt64,
+	Atom_Float16,
+	Atom_Float32,
+	Atom_Float64,
+	Atom_CodePoint,
 
 	Pointer,
 	Slice,
@@ -25,6 +38,7 @@ enum struct TypeClass {
 };
 
 
+
 /**
  * Base class for all other types.
  */
@@ -36,6 +50,14 @@ struct Type {
 			std::cout << "\t";
 		}
 	};
+
+	virtual bool operator==(const Type& other) const {
+		return type_class() == other.type_class();
+	}
+
+	virtual bool operator!=(const Type& other) const {
+		return !(*this == other);
+	}
 };
 
 
@@ -80,6 +102,11 @@ struct Byte_T : Atom_T {
 		Type::print(indent);
 		std::cout << "Byte";
 	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_Byte;
+	}
 };
 
 
@@ -90,6 +117,11 @@ struct Int8_T : Atom_T {
 		Type::print(indent);
 		std::cout << "Int8";
 	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_Int8;
+	}
 };
 
 // An 16-bit integer
@@ -98,6 +130,11 @@ struct Int16_T : Atom_T {
 	{
 		Type::print(indent);
 		std::cout << "Int16";
+	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_Int16;
 	}
 };
 
@@ -108,6 +145,11 @@ struct Int32_T : Atom_T {
 		Type::print(indent);
 		std::cout << "Int32";
 	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_Int32;
+	}
 };
 
 // An 64-bit integer
@@ -116,6 +158,11 @@ struct Int64_T : Atom_T {
 	{
 		Type::print(indent);
 		std::cout << "Int64";
+	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_Int64;
 	}
 };
 
@@ -127,6 +174,11 @@ struct UInt8_T : Atom_T {
 		Type::print(indent);
 		std::cout << "UInt8";
 	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_UInt8;
+	}
 };
 
 // An unsigned 16-bit integer
@@ -135,6 +187,11 @@ struct UInt16_T : Atom_T {
 	{
 		Type::print(indent);
 		std::cout << "UInt16";
+	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_UInt16;
 	}
 };
 
@@ -145,6 +202,11 @@ struct UInt32_T: Atom_T {
 		Type::print(indent);
 		std::cout << "UInt32";
 	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_UInt32;
+	}
 };
 
 // An unsigned 64-bit integer
@@ -153,6 +215,11 @@ struct UInt64_T : Atom_T {
 	{
 		Type::print(indent);
 		std::cout << "UInt64";
+	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_UInt64;
 	}
 };
 
@@ -164,6 +231,11 @@ struct Float16_T : Atom_T {
 		Type::print(indent);
 		std::cout << "Float16";
 	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_Float16;
+	}
 };
 
 // A 32-bit float
@@ -172,6 +244,11 @@ struct Float32_T : Atom_T {
 	{
 		Type::print(indent);
 		std::cout << "Float32";
+	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_Float32;
 	}
 };
 
@@ -182,6 +259,11 @@ struct Float64_T : Atom_T {
 		Type::print(indent);
 		std::cout << "Float64";
 	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_Float64;
+	}
 };
 
 
@@ -191,6 +273,11 @@ struct CodePoint_T : Atom_T {
 	{
 		Type::print(indent);
 		std::cout << "Code Point";
+	}
+
+	virtual TypeClass type_class() const
+	{
+		return TypeClass::Atom_CodePoint;
 	}
 };
 

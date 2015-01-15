@@ -47,6 +47,11 @@ int main(int argc, char** argv)
 		throw e;
 	}
 
+	if (!ast.check_types())
+	{
+		printf("Shame on you!");
+	}
+
 	// Write C output
 	if (argc > 2) {
 		std::ofstream f_out(argv[2], std::ios::out | std::ios::binary);
