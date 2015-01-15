@@ -51,11 +51,13 @@ struct Type {
 		}
 	};
 
-	virtual bool operator==(const Type& other) const {
+	virtual bool operator==(const Type& other) const
+	{
 		return type_class() == other.type_class();
 	}
 
-	virtual bool operator!=(const Type& other) const {
+	virtual bool operator!=(const Type& other) const
+	{
 		return !(*this == other);
 	}
 };

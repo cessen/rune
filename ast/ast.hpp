@@ -285,7 +285,8 @@ struct VariableNode: ExprNode {
 	VariableDeclNode* declaration;
 
 	VariableNode() {}
-	VariableNode(VariableDeclNode* decl) : declaration{ decl } {
+	VariableNode(VariableDeclNode* decl) : declaration{ decl }
+	{
 		assert(declaration != nullptr);
 
 		eval_type = nullptr;
@@ -303,7 +304,8 @@ struct ConstantNode : ExprNode {
 	ConstantDeclNode* declaration;
 
 	ConstantNode() {}
-	ConstantNode(ConstantDeclNode* decl) : declaration{ decl } {
+	ConstantNode(ConstantDeclNode* decl) : declaration{ decl }
+	{
 		assert(declaration != nullptr);
 
 		eval_type = nullptr;

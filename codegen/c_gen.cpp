@@ -9,7 +9,10 @@ class UnreachableException : public std::logic_error
 {
 public:
 	UnreachableException(): std::logic_error("") {}
-	virtual char const * what() const { return "Function not yet implemented."; }
+	virtual char const * what() const
+	{
+		return "Function not yet implemented.";
+	}
 };
 
 

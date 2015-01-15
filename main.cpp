@@ -47,8 +47,7 @@ int main(int argc, char** argv)
 		throw e;
 	}
 
-	if (!ast.check_types())
-	{
+	if (!ast.check_types()) {
 		printf("Shame on you!");
 	}
 

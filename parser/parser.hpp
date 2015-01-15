@@ -191,8 +191,8 @@ private:
 	{
 		if (t.type == IDENTIFIER &&
 		        scope_stack.is_symbol_in_scope(t.text) &&
-				is_node_variable(scope_stack[t.text]) ||
-				is_node_constant(scope_stack[t.text])
+		        is_node_variable(scope_stack[t.text]) ||
+		        is_node_constant(scope_stack[t.text])
 		   ) {
 			return true;
 		}
