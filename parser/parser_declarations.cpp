@@ -133,7 +133,7 @@ ConstantDeclNode* Parser::parse_constant_decl()
 	++token_iter;
 	skip_newlines();
 	if (token_iter->type == K_FN) {
-		if (!scope_stack.push_symbol(node->name, SymbolType::CONST_FUNCTION)) {
+		if (!scope_stack.push_symbol(node->name, node)) {
 			// Error
 			std::ostringstream msg;
 			msg << "Attempted to declare const function '" << node->name << "', but something with the same name is already in scope.";
@@ -141,7 +141,7 @@ ConstantDeclNode* Parser::parse_constant_decl()
 		}
 	}
 	else {
-		if (!scope_stack.push_symbol(node->name, SymbolType::CONST_VARIABLE)) {
+		if (!scope_stack.push_symbol(node->name, node)) {
 			// Error
 			std::ostringstream msg;
 			msg << "Attempted to declare const variable '" << node->name << "', but something with the same name is already in scope.";
@@ -159,7 +159,7 @@ ConstantDeclNode* Parser::parse_constant_decl()
 		auto init_t = ast.store.alloc<Function_T>();
 		std::vector<Type*> ts;
 		for (auto& p: init->parameters) {
-			ts.push_back(p.type);
+			ts.push_back(p->type);
 		}
 		init_t->parameter_ts = ast.store.alloc_from_iters(ts.begin(), ts.end());
 		init_t->return_t = init->return_type;
@@ -201,7 +201,7 @@ VariableDeclNode* Parser::parse_variable_decl()
 	}
 
 	// Push symbol onto scope stack
-	if (!scope_stack.push_symbol(node->name, SymbolType::VARIABLE)) {
+	if (!scope_stack.push_symbol(node->name, node)) {
 		// Error
 		std::ostringstream msg;
 		msg << "Attempted to declare variable '" << token_iter->text << "', but something with the same name is already in scope.";
@@ -233,7 +233,7 @@ VariableDeclNode* Parser::parse_variable_decl()
 			auto init_t = ast.store.alloc<Function_T>();
 			std::vector<Type*> ts;
 			for (auto& p: init->parameters) {
-				ts.push_back(p.type);
+				ts.push_back(p->type);
 			}
 			init_t->parameter_ts = ast.store.alloc_from_iters(ts.begin(), ts.end());
 			init_t->return_t = init->return_type;
@@ -278,7 +278,7 @@ ConstantDeclNode* Parser::parse_func_definition()
 	}
 
 	// Push name onto scope stack
-	if (!scope_stack.push_symbol(node->name, SymbolType::CONST_FUNCTION)) {
+	if (!scope_stack.push_symbol(node->name, node)) {
 		// Error
 		std::ostringstream msg;
 		msg << "Attempted to declare function '" << node->name << "', but something with the same name is already in scope.";
@@ -296,7 +296,7 @@ ConstantDeclNode* Parser::parse_func_definition()
 	auto init_t = ast.store.alloc<Function_T>();
 	std::vector<Type*> ts;
 	for (auto& p: init->parameters) {
-		ts.push_back(p.type);
+		ts.push_back(p->type);
 	}
 	init_t->parameter_ts = ast.store.alloc_from_iters(ts.begin(), ts.end());
 	init_t->return_t = init->return_type;

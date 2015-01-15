@@ -1,7 +1,16 @@
+#include <stdexcept>
+
 #include "c_gen.hpp"
 
 #include "ast.hpp"
 #include "type.hpp"
+
+class UnreachableException : public std::logic_error
+{
+public:
+	UnreachableException(): std::logic_error("") {}
+	virtual char const * what() const { return "Function not yet implemented."; }
+};
 
 
 static void gen_c_decl(const DeclNode* decl, std::ostream& f);
@@ -80,7 +89,7 @@ static void gen_c_type(const Type* t, std::ostream& f)
 		}
 
 		default:
-			break;
+			throw UnreachableException();
 	}
 }
 
@@ -88,6 +97,9 @@ static void gen_c_literal(const LiteralNode* literal, std::ostream& f)
 {
 	if (const IntegerLiteralNode* node = dynamic_cast<const IntegerLiteralNode*>(literal)) {
 		f << node->text;
+	}
+	else {
+		throw UnreachableException();
 	}
 }
 
@@ -97,7 +109,10 @@ static void gen_c_expression(const ExprNode* expression, std::ostream& f)
 		gen_c_literal(node, f);
 	}
 	else if (const VariableNode* node = dynamic_cast<const VariableNode*>(expression)) {
-		f << node->name;
+		f << node->declaration->name;
+	}
+	else if (const ConstantNode* node = dynamic_cast<const ConstantNode*>(expression)) {
+		f << node->declaration->name;
 	}
 	else if (const AssignmentNode* node = dynamic_cast<const AssignmentNode*>(expression)) {
 		gen_c_expression(node->lhs, f);
@@ -125,6 +140,9 @@ static void gen_c_expression(const ExprNode* expression, std::ostream& f)
 			f << ")";
 		}
 	}
+	else {
+		throw UnreachableException();
+	}
 }
 
 static void gen_c_statement(const StatementNode* statement, std::ostream& f)
@@ -138,6 +156,9 @@ static void gen_c_statement(const StatementNode* statement, std::ostream& f)
 	}
 	else if (auto node = dynamic_cast<const ExprNode*>(statement)) {
 		gen_c_expression(node, f);
+	}
+	else {
+		throw UnreachableException();
 	}
 
 	f<< ";\n";
@@ -170,9 +191,9 @@ static void gen_c_decl(const DeclNode* decl, std::ostream& f)
 					first = false;
 				}
 				// Type
-				gen_c_type(p.type, f);
+				gen_c_type(p->type, f);
 				// Name
-				f << " " << p.name;
+				f << " " << p->name;
 			}
 			f << ")";
 
@@ -200,5 +221,8 @@ static void gen_c_decl(const DeclNode* decl, std::ostream& f)
 		f << " " << node->name;
 		f << " = ";
 		gen_c_expression(node->initializer, f);
+	}
+	else {
+		throw UnreachableException();
 	}
 }

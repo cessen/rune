@@ -1,4 +1,5 @@
-add_custom_target(ast SOURCES
+add_library(ast
+	ast.cpp
 	ast.hpp
 	type.hpp
 )

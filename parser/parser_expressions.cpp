@@ -72,11 +72,18 @@ ExprNode* Parser::parse_primary_expression()
 				}
 			}
 			// Token is variable
-			else if (token_is_variable(*token_iter)) {
-				ExprNode* var = ast.store.alloc<VariableNode>(VariableNode {token_iter->text});
+			else if (auto var_decl_node = dynamic_cast<VariableDeclNode*>(scope_stack[token_iter->text])) {
+				ExprNode* var = ast.store.alloc<VariableNode>(VariableNode(var_decl_node));
 				++token_iter;
 				return var;
 			}
+			// Token is a constant
+			else if (auto const_decl_node = dynamic_cast<ConstantDeclNode*>(scope_stack[token_iter->text])) {
+				ExprNode* var = ast.store.alloc<ConstantNode>(ConstantNode(const_decl_node));
+				++token_iter;
+				return var;
+			}
+
 
 			std::ostringstream msg;
 			msg << "Unknown identifier: '" << token_iter->text << "'";

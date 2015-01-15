@@ -38,14 +38,14 @@ int main(int argc, char** argv)
 	}
 
 	AST ast;
-	try {
+	//try {
 		std::cout << "Parsing..." << std::endl;
 		ast = parse_tokens(argv[1], tokens);
 		ast.print();
-	}
-	catch (ParseError e) {
-		throw e;
-	}
+	//}
+	//catch (ParseError e) {
+	//	throw e;
+	//}
 
 	// Write C output
 	if (argc > 2) {

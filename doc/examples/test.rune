@@ -1,4 +1,4 @@
-const c: i32 = 42
+const c: i32 = 456
 var a: i32 #= 31
 
 const foo = fn [x: i32, y: i32] -> i32 (

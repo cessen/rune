@@ -39,7 +39,7 @@ LiteralNode* Parser::parse_literal()
 FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 {
 	auto node = ast.store.alloc<FuncLiteralNode>();
-	std::vector<NameTypePair> parameters;
+	std::vector<VariableDeclNode*> parameters;
 
 	if (has_fn) {
 		if (token_iter->type == K_FN) {
@@ -93,10 +93,11 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 		// Parameter type
 		++token_iter;
 		skip_newlines();
-		parameters.push_back(NameTypePair {name, parse_type()});
+		auto param_node = ast.store.alloc(VariableDeclNode(name, parse_type(), ast.store.alloc<EmptyExprNode>(), false));
+		parameters.push_back(param_node);
 
 		// Push parameter onto scope
-		if (!scope_stack.push_symbol(name, SymbolType::VARIABLE)) {
+		if (!scope_stack.push_symbol(name, param_node)) {
 			// Error
 			std::ostringstream msg;
 			msg << "Function definition has a parameter name '" << name << "', but something with that name is already in scope.";

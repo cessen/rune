@@ -29,6 +29,8 @@ struct ASTNode {
 		print_indent(indent);
 		std::cout << "EMPTY_ASTNode";
 	}
+
+
 };
 
 
@@ -61,6 +63,9 @@ struct DeclNode : StatementNode {
 	StringSlice name;
 	Type* type;
 	ExprNode* initializer = nullptr;
+
+	DeclNode() {}
+	DeclNode(StringSlice name, Type* type, ExprNode* init) : name{ name }, type{ type }, initializer{ init } {}
 
 	virtual void print(int indent)
 	{
@@ -134,20 +139,6 @@ struct LiteralNode: ExprNode {
 // Helper classes
 ////////////////////////////////////////////////////////////////
 
-struct NameTypePair {
-	StringSlice name;
-	Type* type;
-
-	void print(int indent)
-	{
-		print_indent(indent);
-		std::cout << name << ":\n";
-		type->print(indent+1);
-	}
-};
-
-
-
 struct ReturnNode: StatementNode {
 	ExprNode* expression;
 
@@ -188,6 +179,10 @@ struct ConstantDeclNode: DeclNode {
 
 struct VariableDeclNode : DeclNode {
 	bool mut;
+
+	VariableDeclNode() {}
+	VariableDeclNode(StringSlice name, Type* type, ExprNode* init, bool mut) : DeclNode(name, type, init), mut{ mut } {}
+
 	virtual void print(int indent)
 	{
 		// Name
@@ -213,12 +208,12 @@ struct VariableDeclNode : DeclNode {
 
 struct StructDeclNode: DeclNode {
 	StringSlice name;
-	Slice<NameTypePair> fields;
+	Slice<VariableDeclNode*> fields;
 };
 
 struct EnumDeclNode: DeclNode {
 	StringSlice name;
-	Slice<NameTypePair> variants;
+	Slice<VariableDeclNode*> variants;
 };
 
 
@@ -241,7 +236,7 @@ struct FloatLiteralNode: LiteralNode {
 
 
 struct FuncLiteralNode: LiteralNode {
-	Slice<NameTypePair> parameters;
+	Slice<VariableDeclNode*> parameters;
 	Type* return_type;
 	ScopeNode* body;
 
@@ -255,7 +250,7 @@ struct FuncLiteralNode: LiteralNode {
 		print_indent(indent+1);
 		std::cout << "PARAMETERS" << std::endl;
 		for (auto& p: parameters) {
-			p.print(indent+2);
+			p->print(indent+2);
 			std::cout << std::endl;
 		}
 
@@ -287,17 +282,38 @@ struct EmptyExprNode : ExprNode {
 };
 
 struct VariableNode: ExprNode {
-	StringSlice name;
+	VariableDeclNode* declaration;
 
 	VariableNode() {}
-	VariableNode(StringSlice name): name {name}
-	{}
+	VariableNode(VariableDeclNode* decl) : declaration{ decl } {
+		assert(declaration != nullptr);
+
+		eval_type = nullptr;
+	}
 
 	virtual void print(int indent)
 	{
 		// Name
 		print_indent(indent);
-		std::cout << name;
+		std::cout << declaration->name;
+	}
+};
+
+struct ConstantNode : ExprNode {
+	ConstantDeclNode* declaration;
+
+	ConstantNode() {}
+	ConstantNode(ConstantDeclNode* decl) : declaration{ decl } {
+		assert(declaration != nullptr);
+
+		eval_type = nullptr;
+	}
+
+	virtual void print(int indent)
+	{
+		// Name
+		print_indent(indent);
+		std::cout << declaration->name;
 	}
 };
 
@@ -354,5 +370,14 @@ public:
 	}
 };
 
+
+
+
+////////////////////////////////////////////////////////////////
+// Identification convenience functions
+////////////////////////////////////////////////////////////////
+bool is_node_const_func_decl(ASTNode* node);
+bool is_node_variable(ASTNode* node);
+bool is_node_constant(ASTNode* node);
 
 #endif // AST_HPP

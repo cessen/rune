@@ -59,9 +59,9 @@ public:
 
 
 private:
-	void init_message(const char* message, int message_length)
+	void init_message(const char* message, size_t message_length)
 	{
-		const int len = message_length <= PARSE_ERROR_MESSAGE_MAX_LENGTH ? message_length : PARSE_ERROR_MESSAGE_MAX_LENGTH;
+		const size_t len = message_length <= PARSE_ERROR_MESSAGE_MAX_LENGTH ? message_length : PARSE_ERROR_MESSAGE_MAX_LENGTH;
 
 		for (int i = 0; i < len; ++i) {
 			error_message[i] = message[i];
@@ -176,7 +176,7 @@ private:
 		}
 		else if (t.type == IDENTIFIER &&
 		         scope_stack.is_symbol_in_scope(t.text) &&
-		         scope_stack.symbol_type(t.text) == SymbolType::CONST_FUNCTION
+		         is_node_const_func_decl(scope_stack[t.text])
 		        ) {
 			return true;
 		}
@@ -191,8 +191,8 @@ private:
 	{
 		if (t.type == IDENTIFIER &&
 		        scope_stack.is_symbol_in_scope(t.text) &&
-				scope_stack.symbol_type(t.text) == SymbolType::VARIABLE ||
-				scope_stack.symbol_type(t.text) == SymbolType::CONST_VARIABLE
+				is_node_variable(scope_stack[t.text]) ||
+				is_node_constant(scope_stack[t.text])
 		   ) {
 			return true;
 		}

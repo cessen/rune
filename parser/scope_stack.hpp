@@ -5,27 +5,12 @@
 #include <vector>
 
 #include "string_slice.hpp"
-
-
-
-
-namespace SymbolType
-{
-enum SymbolType {
-	CONST_FUNCTION,
-	CONST_VARIABLE,
-	FUNCTION,
-	VARIABLE,
-	TYPE,
-};
-}
-
-
+#include "ast.hpp"
 
 
 class ScopeStack
 {
-	std::unordered_map<StringSlice, SymbolType::SymbolType> symbol_table;
+	std::unordered_map<StringSlice, DeclNode*> symbol_table;
 	std::vector<std::vector<StringSlice>> symbol_stack;
 
 public:
@@ -58,10 +43,10 @@ public:
 	}
 
 
-	bool push_symbol(StringSlice name, SymbolType::SymbolType type)
+	bool push_symbol(StringSlice name, DeclNode* node)
 	{
 		if (symbol_table.count(name) == 0) {
-			symbol_table.emplace(std::make_pair(name, type));
+			symbol_table.emplace(std::make_pair(name, node));
 			symbol_stack.back().push_back(name);
 			return true;
 		}
@@ -76,7 +61,7 @@ public:
 		return symbol_table.count(name) > 0;
 	}
 
-	SymbolType::SymbolType symbol_type(StringSlice name)
+	DeclNode* operator[](StringSlice name)
 	{
 		return symbol_table[name];
 	}

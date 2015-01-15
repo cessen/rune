@@ -77,6 +77,7 @@ set (RUNE_LIB
 	codegen
 	lexer
 	parser
+	ast
 	)
 
 # Main executable
