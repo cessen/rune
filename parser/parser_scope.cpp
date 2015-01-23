@@ -4,6 +4,7 @@
 ScopeNode* Parser::parse_scope()
 {
 	auto node = ast.store.alloc<ScopeNode>();
+	node->code = *token_iter;
 	std::vector<StatementNode*> statements;
 
 	// Open scope
@@ -37,5 +38,6 @@ ScopeNode* Parser::parse_scope()
 	// Pop this scope
 	scope_stack.pop_scope();
 
+	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;
 }

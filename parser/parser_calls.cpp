@@ -5,6 +5,8 @@
 FuncCallNode* Parser::parse_standard_func_call()
 {
 	auto node = ast.store.alloc<FuncCallNode>();
+	node->code = *token_iter;
+
 	std::vector<ExprNode*> parameters;
 
 	// Get function name
@@ -32,6 +34,7 @@ FuncCallNode* Parser::parse_standard_func_call()
 
 	// ]?
 	if (token_iter->type == RSQUARE) {
+		node->code.text.set_end(token_iter->text.end());
 		++token_iter;
 		return node;
 	}
@@ -58,6 +61,7 @@ FuncCallNode* Parser::parse_standard_func_call()
 
 	node->parameters = ast.store.alloc_from_iters(parameters.begin(), parameters.end());
 
+	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;
 }
 
@@ -66,6 +70,7 @@ FuncCallNode* Parser::parse_standard_func_call()
 FuncCallNode* Parser::parse_unary_func_call()
 {
 	auto node = ast.store.alloc<FuncCallNode>();
+	node->code = *token_iter;
 
 	// Get function name
 	if (token_iter->type == IDENTIFIER || token_iter->type == OPERATOR) {
@@ -83,6 +88,7 @@ FuncCallNode* Parser::parse_unary_func_call()
 	node->parameters = ast.store.alloc_array<ExprNode*>(1);
 	node->parameters[0] = parse_primary_expression();
 
+	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;
 }
 
@@ -90,6 +96,7 @@ FuncCallNode* Parser::parse_unary_func_call()
 // Binary infix function call syntax
 ExprNode* Parser::parse_binary_func_call(ExprNode* lhs, int lhs_prec)
 {
+	// TODO: fill in node->code properly
 	ExprNode* rhs;
 
 	// Op info

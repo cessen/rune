@@ -94,6 +94,7 @@ Type* Parser::parse_type()
 ConstantDeclNode* Parser::parse_constant_decl()
 {
 	auto node = ast.store.alloc<ConstantDeclNode>();
+	node->code = *token_iter;
 
 	++token_iter;
 	skip_newlines();
@@ -173,6 +174,7 @@ ConstantDeclNode* Parser::parse_constant_decl()
 		parsing_error(*token_iter, msg.str());
 	}
 
+	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;
 }
 
@@ -181,6 +183,7 @@ ConstantDeclNode* Parser::parse_constant_decl()
 VariableDeclNode* Parser::parse_variable_decl()
 {
 	auto node = ast.store.alloc<VariableDeclNode>();
+	node->code = *token_iter;
 
 	if (token_iter->type == K_VAL)
 		node->mut = false;
@@ -253,6 +256,7 @@ VariableDeclNode* Parser::parse_variable_decl()
 		parsing_error(*token_iter, msg.str());
 	}
 
+	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;
 }
 
@@ -263,6 +267,7 @@ ConstantDeclNode* Parser::parse_func_definition()
 	// A function is really just a constant with a function
 	// literal assigned to it.
 	auto node = ast.store.alloc<ConstantDeclNode>();
+	node->code = *token_iter;
 
 	// Function name
 	++token_iter;
@@ -302,5 +307,6 @@ ConstantDeclNode* Parser::parse_func_definition()
 	init_t->return_t = init->return_type;
 	node->type = init_t;
 
+	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;
 }

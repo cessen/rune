@@ -1,4 +1,5 @@
 #include "parser.hpp"
+#include "string_slice.hpp"
 #include "type.hpp"
 
 
@@ -54,6 +55,9 @@ Parser::Parser(std::string file_path, const std::vector<Token>& tokens): file_pa
 AST Parser::parse()
 {
 	ast.root = ast.store.alloc<NamespaceNode>();
+	ast.root->code = *begin;
+	ast.root->code.text.set_end(end->text.end());
+
 	std::vector<NamespaceNode*> namespaces;
 	std::vector<DeclNode*> declarations;
 

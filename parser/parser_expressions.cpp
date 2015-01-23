@@ -7,6 +7,8 @@
 ExprNode* Parser::parse_expression()
 {
 	ExprNode* lhs;
+	CodeSlice code_slice;
+	code_slice = *token_iter;
 
 	// LHS
 	lhs = parse_primary_expression();
@@ -15,6 +17,8 @@ ExprNode* Parser::parse_expression()
 	// Now that we have an lhs, let's see if there are any binary ops
 	// following it.
 	if (token_is_terminator(*token_iter)) {
+		code_slice.text.set_end((token_iter - 1)->text.end());
+		lhs->code = code_slice;
 		return lhs;
 	}
 	else if (token_is_const_function(*token_iter)) {
@@ -28,6 +32,8 @@ ExprNode* Parser::parse_expression()
 		parsing_error(*token_iter, msg.str());
 	}
 
+	code_slice.text.set_end((token_iter - 1)->text.end());
+	lhs->code = code_slice;
 	return lhs;
 }
 
@@ -74,12 +80,14 @@ ExprNode* Parser::parse_primary_expression()
 			// Token is variable
 			else if (auto var_decl_node = dynamic_cast<VariableDeclNode*>(scope_stack[token_iter->text])) {
 				ExprNode* var = ast.store.alloc<VariableNode>(VariableNode(var_decl_node));
+				var->code = *token_iter;
 				++token_iter;
 				return var;
 			}
 			// Token is a constant
 			else if (auto const_decl_node = dynamic_cast<ConstantDeclNode*>(scope_stack[token_iter->text])) {
 				ExprNode* var = ast.store.alloc<ConstantNode>(ConstantNode(const_decl_node));
+				var->code = *token_iter;
 				++token_iter;
 				return var;
 			}

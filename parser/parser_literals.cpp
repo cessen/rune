@@ -7,6 +7,7 @@ LiteralNode* Parser::parse_literal()
 		case INTEGER_LIT: {
 			auto node = ast.store.alloc<IntegerLiteralNode>();
 			node->text = token_iter->text;
+			node->code = *token_iter;
 			++token_iter;
 			return node;
 		}
@@ -39,6 +40,7 @@ LiteralNode* Parser::parse_literal()
 FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 {
 	auto node = ast.store.alloc<FuncLiteralNode>();
+	node->code = *token_iter;
 	std::vector<VariableDeclNode*> parameters;
 
 	if (has_fn) {
@@ -149,5 +151,6 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 
 	scope_stack.pop_scope(); // End parameters scope
 
+	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;
 }

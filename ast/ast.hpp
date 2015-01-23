@@ -4,6 +4,7 @@
 #include <iostream>
 #include "memory_arena.hpp"
 #include "string_slice.hpp"
+#include "tokens.hpp"
 #include "type.hpp"
 
 static void print_indent(int indent)
@@ -12,6 +13,21 @@ static void print_indent(int indent)
 		std::cout << "\t";
 	}
 }
+
+struct CodeSlice {
+	unsigned int line = 0;
+	unsigned int column = 0;
+	StringSlice text;
+
+	CodeSlice& operator=(const Token& token)
+	{
+		line = token.line;
+		column = token.column;
+		text = token.text;
+
+		return *this;
+	}
+};
 
 ////////////////////////////////////////////////////////////////
 // Basic building blocks and base classes
@@ -22,6 +38,8 @@ static void print_indent(int indent)
  * virtual destructor.
  */
 struct ASTNode {
+	CodeSlice code;
+
 	virtual ~ASTNode() {}
 
 	virtual void print(int indent)

@@ -45,7 +45,11 @@ StatementNode* Parser::parse_statement()
 ReturnNode* Parser::parse_return()
 {
 	auto node = ast.store.alloc<ReturnNode>();
+	node->code = *token_iter;
+
 	token_iter++;
 	node->expression = parse_expression();
+
+	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;
 }

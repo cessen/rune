@@ -24,6 +24,15 @@ struct StringSlice {
 	StringSlice(std::string::const_iterator iter, std::string::const_iterator iter_end): iter {&(*iter)}, iter_end {&(*iter_end)}
 	{}
 
+	char const* begin() const
+	{
+		return iter;
+	}
+
+	char const* end() const
+	{
+		return iter_end;
+	}
 
 	// Methods for setting the begin/end of the string slice
 	void set_begin(char const * begin)
