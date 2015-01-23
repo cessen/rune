@@ -299,6 +299,26 @@ struct EmptyExprNode : ExprNode {
 	}
 };
 
+struct AddressOfNode : ExprNode {
+	ExprNode* expr;
+	virtual void print(int indent)
+	{
+		print_indent(indent);
+		std::cout << "ADDRESS_OF" << std::endl;
+		expr->print(indent + 1);
+	}
+};
+
+struct DerefNode : ExprNode {
+	ExprNode* expr;
+	virtual void print(int indent)
+	{
+		print_indent(indent);
+		std::cout << "DEREF" << std::endl;
+		expr->print(indent + 1);
+	}
+};
+
 struct VariableNode: ExprNode {
 	VariableDeclNode* declaration;
 

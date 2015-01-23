@@ -42,6 +42,7 @@ enum TokenType {
 	PERIOD,
 	COLON,
 	BACKTICK,
+	DOLLAR,
 
 	// Keywords
 	K_NAMESPACE,

@@ -34,6 +34,12 @@ void gen_c_code(const AST& ast, std::ostream& f)
 static void gen_c_type(const Type* t, std::ostream& f)
 {
 	switch (t->type_class()) {
+		case TypeClass::Pointer: {
+			auto ptr = dynamic_cast<const Pointer_T*>(t);
+			gen_c_type(ptr->type, f);
+			f << "*";
+			break;
+		}
 		case TypeClass::Void: {
 			f << "void";
 			break;
@@ -124,6 +130,14 @@ static void gen_c_expression(const ExprNode* expression, std::ostream& f)
 {
 	if (const LiteralNode* node = dynamic_cast<const LiteralNode*>(expression)) {
 		gen_c_literal(node, f);
+	}
+	else if (const DerefNode* node = dynamic_cast<const DerefNode*>(expression)) {
+		f << "*";
+		gen_c_expression(node->expr, f);
+	}
+	else if (const AddressOfNode* node = dynamic_cast<const AddressOfNode*>(expression)) {
+		f << "&";
+		gen_c_expression(node->expr, f);
 	}
 	else if (const VariableNode* node = dynamic_cast<const VariableNode*>(expression)) {
 		f << node->declaration->name;

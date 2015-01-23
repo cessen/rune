@@ -9,6 +9,7 @@ const foo = fn [x: i32, y: i32] -> i32 (
 fn main[] -> i32 (
     #print["%d, %d, %d\n", a+b, b+c, foo[a, b]]
 	val d: i32 = 42
+	val ptr: @i32 = @d
 	#val b: i8 = a
-	return foo[d, c]
+	return foo[$ptr, c]
 )

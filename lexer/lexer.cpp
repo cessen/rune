@@ -145,6 +145,10 @@ start_over:
 					token.type = COLON;
 					next_char();
 					break;
+				case '$':
+					token.type = DOLLAR;
+					next_char();
+					break;
 				case '`': {
 					next_char();
 					if (cur_c[0] == '<') {

@@ -29,6 +29,12 @@ DeclNode* Parser::parse_declaration()
 
 Type* Parser::parse_type()
 {
+	if (token_iter->type == AT) {
+		auto node = ast.store.alloc<Pointer_T>();
+		++token_iter;
+		node->type = parse_type();
+		return node;
+	}
 	// Signed integers
 	if (token_iter->text == "i8") {
 		++token_iter;

@@ -291,13 +291,20 @@ struct CodePoint_T : Atom_T {
 ///////////////////////////////////////////////////////////
 
 // A raw pointer.  Points at a single piece of data in memory.
-struct Pointer_T: Type {
+struct Pointer_T : Type {
+	virtual void print(int indent)
+	{
+		Type::print(indent);
+		std::cout << "@";
+		type->print(0);
+	}
+
 	virtual TypeClass type_class() const
 	{
 		return TypeClass::Pointer;
 	}
 
-	Type* t;  // The type that the pointer points at
+	Type* type;  // The type that the pointer points at
 };
 
 
@@ -308,7 +315,7 @@ struct Slice_T: Type {
 		return TypeClass::Slice;
 	}
 
-	Type* t;  // The type that the slice points at
+	Type* type;  // The type that the slice points at
 };
 
 

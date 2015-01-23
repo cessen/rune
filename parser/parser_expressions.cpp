@@ -46,7 +46,26 @@ ExprNode* Parser::parse_primary_expression()
 	switch (token_iter->type) {
 		case LPAREN:
 			return parse_scope();
-			break;
+
+		// Dereference
+		case DOLLAR: {
+			auto node = ast.store.alloc<DerefNode>();
+			node->code = *token_iter;
+			++token_iter;
+			node->expr = parse_expression();
+			// TODO: handle node->code properly
+			return node;
+		}
+
+		// Address of
+		case AT: {
+			auto node = ast.store.alloc<AddressOfNode>();
+			node->code = *token_iter;
+			++token_iter;
+			node->expr = parse_expression();
+			// TODO: handle node->code properly
+			return node;
+		}
 
 		// Literal
 		case K_FN:
