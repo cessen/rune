@@ -12,6 +12,7 @@ fn main[] -> i32 (
 	val ptr: @i32 = @d
 	val mem: @i32 = cmalloc[4]
 	$mem = 41
-	#val b: i8 = a
-	return foo[$ptr, $mem]
+	val b: i32 = $mem
+	cfree[mem]
+	return foo[$ptr, b]
 )

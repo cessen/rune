@@ -166,6 +166,11 @@ static void gen_c_expression(const ExprNode* expression, std::ostream& f)
 				gen_c_expression(node->parameters[0], f);
 				f << ")";
 			}
+			else if (node->name == "cfree") {
+				f << "free(";
+				gen_c_expression(node->parameters[0], f);
+				f << ")";
+			}
 		}
 		else {
 			f << node->name << "(";
