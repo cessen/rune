@@ -28,7 +28,8 @@ StatementNode* Parser::parse_statement()
 		case RAW_STRING_LIT:
 		case LPAREN:
 		case IDENTIFIER:
-		case OPERATOR: {
+		case OPERATOR:
+		case DOLLAR: {
 			return parse_expression();
 		}
 
