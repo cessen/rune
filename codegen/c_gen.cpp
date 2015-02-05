@@ -3,6 +3,7 @@
 #include "c_gen.hpp"
 
 #include "ast.hpp"
+#include "builtins.hpp"
 #include "type.hpp"
 
 class UnreachableException : public std::logic_error
@@ -21,7 +22,8 @@ static void gen_c_decl(const DeclNode* decl, std::ostream& f);
 
 void gen_c_code(const AST& ast, std::ostream& f)
 {
-	f << "#include <stdint.h>\n\n";
+	f << "#include <stdint.h>\n";
+	f << "#include <stdlib.h>\n\n";
 
 	// Declarations
 	for (const auto& decl: ast.root->declarations) {
@@ -157,6 +159,13 @@ static void gen_c_expression(const ExprNode* expression, std::ostream& f)
 			f << " + ";
 			gen_c_expression(node->parameters[1], f);
 			f << ")";
+		}
+		else if (GetBuiltin(node->name) != nullptr) {
+			if (node->name == "cmalloc") {
+				f << "malloc(";
+				gen_c_expression(node->parameters[0], f);
+				f << ")";
+			}
 		}
 		else {
 			f << node->name << "(";

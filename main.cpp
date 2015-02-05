@@ -10,6 +10,7 @@
 
 int main(int argc, char** argv)
 {
+	InitBuiltins();
 	std::cout << "Rune v" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << "\n";
 
 	if (argc < 2) {

@@ -1,6 +1,7 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
+#include "builtins.hpp"
 #include "tokens.hpp"
 #include "ast.hpp"
 #include "string_slice.hpp"
@@ -180,6 +181,9 @@ private:
 		        ) {
 			return true;
 		}
+		else if (t.type == IDENTIFIER && GetBuiltin(t.text) != nullptr) {
+			return true;
+		}
 		else {
 			return false;
 		}
@@ -211,7 +215,7 @@ private:
 	// Throws an error if the given token isn't in scope
 	void assert_in_scope(Token t)
 	{
-		if (!scope_stack.is_symbol_in_scope(t.text)) {
+		if (!scope_stack.is_symbol_in_scope(t.text) && GetBuiltin(t.text) == nullptr) {
 			std::ostringstream msg;
 			msg << "No symbol in scope named '" << token_iter->text << "'.";
 			parsing_error(*token_iter, msg.str());
