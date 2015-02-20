@@ -17,6 +17,10 @@ DeclNode* Parser::parse_declaration()
 			return parse_func_definition();
 		}
 
+		case K_TYPE: {
+			return parse_nominal_type_decl();
+		}
+
 		default: {
 			// TODO
 			std::ostringstream msg;
@@ -27,73 +31,7 @@ DeclNode* Parser::parse_declaration()
 	}
 }
 
-Type* Parser::parse_type()
-{
-	if (token_iter->type == AT) {
-		auto node = ast.store.alloc<Pointer_T>();
-		++token_iter;
-		node->type = parse_type();
-		return node;
-	}
-	// Signed integers
-	if (token_iter->text == "i8") {
-		++token_iter;
-		return ast.store.alloc<Int8_T>();
-	}
-	if (token_iter->text == "i16") {
-		++token_iter;
-		return ast.store.alloc<Int16_T>();
-	}
-	if (token_iter->text == "i32") {
-		++token_iter;
-		return ast.store.alloc<Int32_T>();
-	}
-	if (token_iter->text == "i64") {
-		++token_iter;
-		return ast.store.alloc<Int64_T>();
-	}
 
-	// Unsigned integers
-	if (token_iter->text == "u8") {
-		++token_iter;
-		return ast.store.alloc<UInt8_T>();
-	}
-	if (token_iter->text == "u16") {
-		++token_iter;
-		return ast.store.alloc<UInt16_T>();
-	}
-	if (token_iter->text == "u32") {
-		++token_iter;
-		return ast.store.alloc<UInt32_T>();
-	}
-	if (token_iter->text == "u64") {
-		++token_iter;
-		return ast.store.alloc<UInt64_T>();
-	}
-
-	// Floats
-	if (token_iter->text == "f16") {
-		++token_iter;
-		return ast.store.alloc<Float16_T>();
-	}
-	if (token_iter->text == "f32") {
-		++token_iter;
-		return ast.store.alloc<Float32_T>();
-	}
-	if (token_iter->text == "f64") {
-		++token_iter;
-		return ast.store.alloc<Float64_T>();
-	}
-
-	// Error, unknown type
-	std::ostringstream msg;
-	msg << "Invalid type name: '" << token_iter->text << "'.";
-	parsing_error(*token_iter, msg.str());
-
-	// Bogus return, will never be reached because parsing_error() throws.
-	// It's here just to silence warnings.
-	return nullptr;
-}
 
 
 // Constant
@@ -312,6 +250,55 @@ ConstantDeclNode* Parser::parse_func_definition()
 	init_t->parameter_ts = ast.store.alloc_from_iters(ts.begin(), ts.end());
 	init_t->return_t = init->return_type;
 	node->type = init_t;
+
+	node->code.text.set_end((token_iter - 1)->text.end());
+	return node;
+}
+
+
+NominalTypeDeclNode* Parser::parse_nominal_type_decl()
+{
+	auto node = ast.store.alloc<NominalTypeDeclNode>();
+	node->code = *token_iter;
+
+	// Skip "type"
+	++token_iter;
+	skip_newlines();
+
+	// Type name
+	if (token_iter->type == IDENTIFIER) {
+		node->name = token_iter->text;
+	}
+	else {
+		// Error
+		std::ostringstream msg;
+		msg << "Invalid type name: '" << token_iter->text << "'.";
+		parsing_error(*token_iter, msg.str());
+	}
+
+	// Push name onto scope stack
+	if (!scope_stack.push_symbol(node->name, node)) {
+		// Error
+		std::ostringstream msg;
+		msg << "Attempted to declare type '" << node->name << "', but something with the same name is already in scope.";
+		parsing_error(*token_iter, msg.str());
+	}
+
+	// Iterate past ":"
+	++token_iter;
+	skip_newlines();
+	if (token_iter->type != COLON) {
+		// Error
+		std::ostringstream msg;
+		msg << "Unexpected token: '" << token_iter->text << "'.";
+		parsing_error(*token_iter, msg.str());
+	}
+
+	++token_iter;
+	skip_newlines();
+	node->type = parse_type();
+	node->type->is_nominal = true;
+
 
 	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;

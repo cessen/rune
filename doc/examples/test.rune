@@ -6,6 +6,14 @@ const foo = fn [x: i32, y: i32] -> i32 (
     return x + y
 )
 
+type Yar: struct {
+	x: i32,
+	y: i32,
+	z: i32,
+}
+
+#type Meter: f32
+
 fn main[] -> i32 (
     #print["%d, %d, %d\n", a+b, b+c, foo[a, b]]
 	val d: i32 = 42

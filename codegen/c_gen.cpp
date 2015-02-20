@@ -267,6 +267,24 @@ static void gen_c_decl(const DeclNode* decl, std::ostream& f)
 		f << " = ";
 		gen_c_expression(node->initializer, f);
 	}
+	else if (const NominalTypeDeclNode* node = dynamic_cast<const NominalTypeDeclNode*>(decl)) {
+		if (auto type = dynamic_cast<Struct_T*>(node->type)) {
+			f << "struct ";
+			f << node->name;
+			f << " {\n";
+			for (unsigned int i = 0; i < type->field_names.size(); ++i) {
+				gen_c_type(type->field_types[i], f);
+				f << " ";
+				f << type->field_names[i];
+				f << ";\n";
+
+			}
+			f << "}";
+		}
+		else {
+			//throw UnreachableException();
+		}
+	}
 	else {
 		throw UnreachableException();
 	}

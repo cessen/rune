@@ -127,10 +127,10 @@ private:
 
 	// parser_declarations.cpp
 	DeclNode* parse_declaration();
-	struct Type* parse_type();
 	ConstantDeclNode* parse_constant_decl();
 	VariableDeclNode* parse_variable_decl();
 	ConstantDeclNode* parse_func_definition();
+	NominalTypeDeclNode* parse_nominal_type_decl();
 
 	// parser_calls.cpp
 	FuncCallNode* parse_standard_func_call();
@@ -140,6 +140,10 @@ private:
 	// parser_literals.cpp
 	LiteralNode* parse_literal();
 	FuncLiteralNode* parse_function_literal(bool has_fn = true);
+	struct Type* parse_type();
+	struct Type* parse_struct();
+
+
 
 
 private:

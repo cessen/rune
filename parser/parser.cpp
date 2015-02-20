@@ -73,7 +73,8 @@ AST Parser::parse()
 			case K_VAL:
 			case K_VAR:
 			case K_FN:
-			case K_STRUCT: {
+			case K_STRUCT:
+			case K_TYPE: {
 				declarations.push_back(parse_declaration());
 				break;
 			}

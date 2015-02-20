@@ -224,14 +224,8 @@ struct VariableDeclNode : DeclNode {
 	}
 };
 
-struct StructDeclNode: DeclNode {
-	StringSlice name;
-	Slice<VariableDeclNode*> fields;
-};
-
-struct EnumDeclNode: DeclNode {
-	StringSlice name;
-	Slice<VariableDeclNode*> variants;
+struct NominalTypeDeclNode : DeclNode {
+	// This Node is for identification and uses "type" from DeclNode
 };
 
 

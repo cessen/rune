@@ -55,7 +55,7 @@ static bool _check_types_helper(ASTNode *_node)
 			return false;
 
 		//TODO Handle this better
-		if (node->initializer->eval_type == nullptr)
+		if (node->initializer == nullptr || node->initializer->eval_type == nullptr)
 			return true;
 
 		if (*node->type != *node->initializer->eval_type) {

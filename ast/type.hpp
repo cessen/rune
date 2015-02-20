@@ -43,6 +43,7 @@ enum struct TypeClass {
  * Base class for all other types.
  */
 struct Type {
+	bool is_nominal = false;
 	virtual TypeClass type_class() const = 0;
 	virtual void print(int indent)
 	{
@@ -356,8 +357,7 @@ struct Struct_T: Type {
 		return TypeClass::Struct;
 	}
 
-	StringSlice name;
-	Slice<Type*> field_ts;  // The types of the fields of the struct
+	Slice<Type*> field_types;  // The types of the fields of the struct
 	Slice<StringSlice> field_names;  // The names of the fields of the struct
 };
 

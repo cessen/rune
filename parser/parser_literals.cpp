@@ -1,5 +1,8 @@
 #include "parser.hpp"
 
+#include <vector>
+#include <unordered_set>
+
 
 LiteralNode* Parser::parse_literal()
 {
@@ -153,4 +156,166 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 
 	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;
+}
+
+
+Type* Parser::parse_type()
+{
+	switch (token_iter->type) {
+		case K_STRUCT: {
+			return parse_struct();
+		}
+
+		case AT: {
+			auto node = ast.store.alloc<Pointer_T>();
+			++token_iter;
+			node->type = parse_type();
+			return node;
+		}
+
+		case IDENTIFIER: {
+			// Signed integers
+			if (token_iter->text == "i8") {
+				++token_iter;
+				return ast.store.alloc<Int8_T>();
+			}
+			if (token_iter->text == "i16") {
+				++token_iter;
+				return ast.store.alloc<Int16_T>();
+			}
+			if (token_iter->text == "i32") {
+				++token_iter;
+				return ast.store.alloc<Int32_T>();
+			}
+			if (token_iter->text == "i64") {
+				++token_iter;
+				return ast.store.alloc<Int64_T>();
+			}
+
+			// Unsigned integers
+			if (token_iter->text == "u8") {
+				++token_iter;
+				return ast.store.alloc<UInt8_T>();
+			}
+			if (token_iter->text == "u16") {
+				++token_iter;
+				return ast.store.alloc<UInt16_T>();
+			}
+			if (token_iter->text == "u32") {
+				++token_iter;
+				return ast.store.alloc<UInt32_T>();
+			}
+			if (token_iter->text == "u64") {
+				++token_iter;
+				return ast.store.alloc<UInt64_T>();
+			}
+
+			// Floats
+			if (token_iter->text == "f16") {
+				++token_iter;
+				return ast.store.alloc<Float16_T>();
+			}
+			if (token_iter->text == "f32") {
+				++token_iter;
+				return ast.store.alloc<Float32_T>();
+			}
+			if (token_iter->text == "f64") {
+				++token_iter;
+				return ast.store.alloc<Float64_T>();
+			}
+
+			break;
+		}
+	}
+
+	// Error, unknown type
+	std::ostringstream msg;
+	msg << "Invalid type name: '" << token_iter->text << "'.";
+	parsing_error(*token_iter, msg.str());
+
+	// Bogus return, will never be reached because parsing_error() throws.
+	// It's here just to silence warnings.
+	return nullptr;
+}
+
+
+Type* Parser::parse_struct()
+{
+	auto type = ast.store.alloc<Struct_T>();
+
+	// Skip "struct"
+	++token_iter;
+	skip_newlines();
+
+	// Iterate past "{"
+	if (token_iter->type != LCURLY) {
+		// Error
+		std::ostringstream msg;
+		msg << "Unexpected token: '" << token_iter->text << "'.";
+		parsing_error(*token_iter, msg.str());
+	}
+
+	std::vector<StringSlice> names;
+	std::vector<Type*> types;
+
+	while (true) {
+		// Get name
+		++token_iter;
+		skip_newlines();
+		if (token_iter->type == IDENTIFIER) {
+			names.push_back(token_iter->text);
+		}
+		else {
+			break;
+		}
+
+		// Iterate past ":"
+		++token_iter;
+		skip_newlines();
+		if (token_iter->type != COLON) {
+			// Error
+			std::ostringstream msg;
+			msg << "Unexpected token: '" << token_iter->text << "'.";
+			parsing_error(*token_iter, msg.str());
+		}
+
+		// Type
+		++token_iter;
+		skip_newlines();
+		types.push_back(parse_type());
+
+		// Possible comma
+		skip_newlines();
+		if (token_iter->type != COMMA) {
+			break;
+		}
+	}
+
+	// Iterate past "}"
+	if (token_iter->type != RCURLY) {
+		// Error
+		std::ostringstream msg;
+		msg << "Unexpected token: '" << token_iter->text << "'.";
+		parsing_error(*token_iter, msg.str());
+	}
+	++token_iter;
+	skip_newlines();
+
+	// Make sure there are no duplicate field names
+	std::unordered_set<StringSlice> name_dup_check_set_thing;
+	for (auto& name : names) {
+		auto b = name_dup_check_set_thing.insert(name);
+		if (!b.second) {
+			// Error
+			std::ostringstream msg;
+			msg << "Duplicate field name found: '" << name << "'.";
+			parsing_error(*token_iter, msg.str());
+		}
+	}
+
+	// Put the names and types in the struct
+	type->field_names = ast.store.alloc_from_iters(names.begin(), names.end());
+	type->field_types = ast.store.alloc_from_iters(types.begin(), types.end());
+
+	return type;
 }
