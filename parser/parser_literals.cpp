@@ -224,6 +224,13 @@ Type* Parser::parse_type()
 				return ast.store.alloc<Float64_T>();
 			}
 
+			// User defined type
+			if (scope_stack.is_symbol_in_scope(token_iter->text)) {
+				DeclNode* decl_node = scope_stack[token_iter->text];
+				++token_iter;
+				return decl_node->type;
+			}
+
 			break;
 		}
 	}

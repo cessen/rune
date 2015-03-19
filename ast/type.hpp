@@ -43,7 +43,7 @@ enum struct TypeClass {
  * Base class for all other types.
  */
 struct Type {
-	bool is_nominal = false;
+	StringSlice name;
 	virtual TypeClass type_class() const = 0;
 	virtual void print(int indent)
 	{

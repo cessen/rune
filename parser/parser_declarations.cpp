@@ -297,7 +297,7 @@ NominalTypeDeclNode* Parser::parse_nominal_type_decl()
 	++token_iter;
 	skip_newlines();
 	node->type = parse_type();
-	node->type->is_nominal = true;
+	node->type->name = node->name;
 
 
 	node->code.text.set_end((token_iter - 1)->text.end());

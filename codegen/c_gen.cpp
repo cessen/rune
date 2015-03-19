@@ -113,6 +113,12 @@ static void gen_c_type(const Type* t, std::ostream& f)
 			break;
 		}
 
+		case TypeClass::Struct: {
+			if (t->name.length() != 0) {
+				f << t->name;
+				break;
+			}
+		}
 		default:
 			throw UnreachableException();
 	}
@@ -269,7 +275,7 @@ static void gen_c_decl(const DeclNode* decl, std::ostream& f)
 	}
 	else if (const NominalTypeDeclNode* node = dynamic_cast<const NominalTypeDeclNode*>(decl)) {
 		if (auto type = dynamic_cast<Struct_T*>(node->type)) {
-			f << "struct ";
+			f << "typedef struct ";
 			f << node->name;
 			f << " {\n";
 			for (unsigned int i = 0; i < type->field_names.size(); ++i) {
@@ -279,7 +285,7 @@ static void gen_c_decl(const DeclNode* decl, std::ostream& f)
 				f << ";\n";
 
 			}
-			f << "}";
+			f << "}" << node->name;
 		}
 		else {
 			//throw UnreachableException();
