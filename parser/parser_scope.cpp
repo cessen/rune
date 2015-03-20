@@ -17,7 +17,7 @@ ScopeNode* Parser::parse_scope()
 	++token_iter;
 
 	// Push this scope
-	scope_stack.push_scope();
+	fn_scope.push_scope();
 
 	while (true) {
 		skip_newlines();
@@ -36,7 +36,7 @@ ScopeNode* Parser::parse_scope()
 	node->statements = ast.store.alloc_from_iters(statements.begin(), statements.end());
 
 	// Pop this scope
-	scope_stack.pop_scope();
+	fn_scope.pop_scope();
 
 	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;

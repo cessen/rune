@@ -78,8 +78,6 @@ ExprNode* Parser::parse_primary_expression()
 
 		case OPERATOR:
 		case IDENTIFIER: {
-			assert_in_scope(*token_iter);
-
 			// Standard function call
 			if (token_iter[1].type == LSQUARE) {
 				return parse_standard_func_call();
@@ -96,26 +94,13 @@ ExprNode* Parser::parse_primary_expression()
 					parsing_error(*token_iter, msg.str());
 				}
 			}
-			// Token is variable
-			else if (auto var_decl_node = dynamic_cast<VariableDeclNode*>(scope_stack[token_iter->text])) {
-				ExprNode* var = ast.store.alloc<VariableNode>(VariableNode(var_decl_node));
+			// Token is some other identifier
+			else {
+				ExprNode* var = ast.store.alloc<ExprNode>();
 				var->code = *token_iter;
 				++token_iter;
 				return var;
 			}
-			// Token is a constant
-			else if (auto const_decl_node = dynamic_cast<ConstantDeclNode*>(scope_stack[token_iter->text])) {
-				ExprNode* var = ast.store.alloc<ConstantNode>(ConstantNode(const_decl_node));
-				var->code = *token_iter;
-				++token_iter;
-				return var;
-			}
-
-
-			std::ostringstream msg;
-			msg << "Unknown identifier: '" << token_iter->text << "'";
-			parsing_error(*token_iter, msg.str());
-			break;
 		}
 
 		default:

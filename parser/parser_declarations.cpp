@@ -78,20 +78,7 @@ ConstantDeclNode* Parser::parse_constant_decl()
 	++token_iter;
 	skip_newlines();
 	if (token_iter->type == K_FN) {
-		if (!scope_stack.push_symbol(node->name, node)) {
-			// Error
-			std::ostringstream msg;
-			msg << "Attempted to declare const function '" << node->name << "', but something with the same name is already in scope.";
-			parsing_error(*token_iter, msg.str());
-		}
-	}
-	else {
-		if (!scope_stack.push_symbol(node->name, node)) {
-			// Error
-			std::ostringstream msg;
-			msg << "Attempted to declare const variable '" << node->name << "', but something with the same name is already in scope.";
-			parsing_error(*token_iter, msg.str());
-		}
+		fn_scope.push_symbol(node->name, node);
 	}
 
 	// Get initializer
@@ -144,14 +131,6 @@ VariableDeclNode* Parser::parse_variable_decl()
 		// Error
 		std::ostringstream msg;
 		msg << "Invalid variable name: '" << token_iter->text << "'.";
-		parsing_error(*token_iter, msg.str());
-	}
-
-	// Push symbol onto scope stack
-	if (!scope_stack.push_symbol(node->name, node)) {
-		// Error
-		std::ostringstream msg;
-		msg << "Attempted to declare variable '" << token_iter->text << "', but something with the same name is already in scope.";
 		parsing_error(*token_iter, msg.str());
 	}
 
@@ -227,12 +206,7 @@ ConstantDeclNode* Parser::parse_func_definition()
 	}
 
 	// Push name onto scope stack
-	if (!scope_stack.push_symbol(node->name, node)) {
-		// Error
-		std::ostringstream msg;
-		msg << "Attempted to declare function '" << node->name << "', but something with the same name is already in scope.";
-		parsing_error(*token_iter, msg.str());
-	}
+	fn_scope.push_symbol(node->name, node);
 
 	// Function definition
 	++token_iter;
@@ -273,14 +247,6 @@ NominalTypeDeclNode* Parser::parse_nominal_type_decl()
 		// Error
 		std::ostringstream msg;
 		msg << "Invalid type name: '" << token_iter->text << "'.";
-		parsing_error(*token_iter, msg.str());
-	}
-
-	// Push name onto scope stack
-	if (!scope_stack.push_symbol(node->name, node)) {
-		// Error
-		std::ostringstream msg;
-		msg << "Attempted to declare type '" << node->name << "', but something with the same name is already in scope.";
 		parsing_error(*token_iter, msg.str());
 	}
 

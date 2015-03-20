@@ -8,9 +8,10 @@
 #include "ast.hpp"
 
 
+template <typename T>
 class ScopeStack
 {
-	std::unordered_map<StringSlice, DeclNode*> symbol_table;
+	std::unordered_map<StringSlice, T> symbol_table;
 	std::vector<std::vector<StringSlice>> symbol_stack;
 
 public:
@@ -43,7 +44,7 @@ public:
 	}
 
 
-	bool push_symbol(StringSlice name, DeclNode* node)
+	bool push_symbol(StringSlice name, T node)
 	{
 		if (symbol_table.count(name) == 0) {
 			symbol_table.emplace(std::make_pair(name, node));
@@ -61,7 +62,7 @@ public:
 		return symbol_table.count(name) > 0;
 	}
 
-	DeclNode* operator[](StringSlice name)
+	T operator[](StringSlice name)
 	{
 		return symbol_table[name];
 	}

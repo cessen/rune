@@ -8,6 +8,7 @@
 
 
 enum struct TypeClass {
+	Unknown,
 	Void,
 
 	Atom, // One of the fundamental types, like int, float, etc.
@@ -61,6 +62,26 @@ struct Type {
 	{
 		return !(*this == other);
 	}
+};
+
+
+/**
+ * Unknown nominal type.  Used as a stand-in for nominal types before the
+ * actual type is known.  'name' must be filled in.
+ * 
+ * This is distict from completely unspecified types, which are represented
+ * in the AST by nullptr's.
+ */
+struct Unknown_T: Type {
+    virtual TypeClass type_class() const
+    {
+        return TypeClass::Unknown;
+    }
+    virtual void print(int indent)
+    {
+        Type::print(indent);
+        std::cout << "Unknown_T \"" << name << "\"";
+    }
 };
 
 

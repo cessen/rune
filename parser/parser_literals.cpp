@@ -68,7 +68,7 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 	}
 
 	// Parameters
-	scope_stack.push_scope(); // Begin parameters scope (ends after body)
+	fn_scope.push_scope(); // Begin parameters scope (ends after body)
 	while (true) {
 		// Parameter name
 		++token_iter;
@@ -100,14 +100,6 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 		skip_newlines();
 		auto param_node = ast.store.alloc(VariableDeclNode(name, parse_type(), ast.store.alloc<EmptyExprNode>(), false));
 		parameters.push_back(param_node);
-
-		// Push parameter onto scope
-		if (!scope_stack.push_symbol(name, param_node)) {
-			// Error
-			std::ostringstream msg;
-			msg << "Function definition has a parameter name '" << name << "', but something with that name is already in scope.";
-			parsing_error(*token_iter, msg.str());
-		}
 
 		// Either a comma or closing square bracket
 		skip_newlines();
@@ -152,7 +144,7 @@ FuncLiteralNode* Parser::parse_function_literal(bool has_fn)
 		parsing_error(*token_iter, msg.str());
 	}
 
-	scope_stack.pop_scope(); // End parameters scope
+	fn_scope.pop_scope(); // End parameters scope
 
 	node->code.text.set_end((token_iter - 1)->text.end());
 	return node;
@@ -225,13 +217,13 @@ Type* Parser::parse_type()
 			}
 
 			// User defined type
-			if (scope_stack.is_symbol_in_scope(token_iter->text)) {
-				DeclNode* decl_node = scope_stack[token_iter->text];
-				++token_iter;
-				return decl_node->type;
-			}
-
-			break;
+			// We return an "unknown" type for now, because all we have is
+			// the name.  The actual type will be hooked up later in a separate
+			// pass over the AST.
+			auto t = ast.store.alloc<Unknown_T>();
+			t->name = token_iter->text;
+			++token_iter;
+			return t;
 		}
 		
 		default: {

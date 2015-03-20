@@ -81,7 +81,7 @@ class Parser
 	std::vector<Token>::const_iterator end;
 	std::vector<Token>::const_iterator token_iter;
 
-	ScopeStack scope_stack;
+	ScopeStack<bool> fn_scope;  // Tracks what const functions are in scope
 
 	std::unordered_map<StringSlice, int> op_prec; // Binary operator precidence map
 	std::string binary_op_list; // Storage for operator strings, referenced by op_prec
@@ -176,56 +176,16 @@ private:
 	bool token_is_const_function(Token t)
 	{
 		if (t.type == OPERATOR) {
-			// TODO
 			return true;
 		}
-		else if (t.type == IDENTIFIER &&
-		         scope_stack.is_symbol_in_scope(t.text) &&
-		         is_node_const_func_decl(scope_stack[t.text])
-		        ) {
-			return true;
-		}
-		else if (t.type == IDENTIFIER && GetBuiltin(t.text) != nullptr) {
+		else if (t.type == IDENTIFIER && fn_scope.is_symbol_in_scope(t.text)) {
 			return true;
 		}
 		else {
 			return false;
 		}
 	}
-
-
-	// Returns whether the token is a variable identifier
-	bool token_is_variable(Token t)
-	{
-		if (t.type == IDENTIFIER &&
-		        scope_stack.is_symbol_in_scope(t.text) &&
-		        (is_node_variable(scope_stack[t.text]) ||
-		        is_node_constant(scope_stack[t.text]))
-		   ) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-
-	bool token_in_scope(Token t)
-	{
-		return scope_stack.is_symbol_in_scope(t.text);
-	}
-
-
-	// Throws an error if the given token isn't in scope
-	void assert_in_scope(Token t)
-	{
-		if (!scope_stack.is_symbol_in_scope(t.text) && GetBuiltin(t.text) == nullptr) {
-			std::ostringstream msg;
-			msg << "No symbol in scope named '" << token_iter->text << "'.";
-			parsing_error(*token_iter, msg.str());
-		}
-	}
-
+	
 
 	// Returns whether the token is a terminator token, i.e. a token
 	// that ends an expression.

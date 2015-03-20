@@ -70,7 +70,10 @@ struct StatementNode: ASTNode {
 struct ExprNode: StatementNode {
 	Type* eval_type = nullptr;  // Type that the expression evaluates to
 
-	virtual void print(int indent) = 0;
+	virtual void print(int indent) {
+        print_indent(indent);
+        std::cout << "Unknown Expression \"" << code.text << "\"";
+    }
 };
 
 
