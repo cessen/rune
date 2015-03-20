@@ -233,6 +233,10 @@ Type* Parser::parse_type()
 
 			break;
 		}
+		
+		default: {
+		    break;
+		}
 	}
 
 	// Error, unknown type

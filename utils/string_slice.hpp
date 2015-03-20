@@ -3,7 +3,7 @@
 
 
 #include <iostream>
-#include <string>
+#include <cstring>
 #include <cstdlib>
 
 /**
@@ -18,7 +18,7 @@ struct StringSlice {
 	StringSlice()
 	{}
 
-	StringSlice(char const * string_lit) : iter{ string_lit }, iter_end{ string_lit + strlen(string_lit) } {}
+	StringSlice(char const * string_lit) : iter{ string_lit }, iter_end{ string_lit + std::strlen(string_lit) } {}
 
 	StringSlice(char const * iter, char const * iter_end): iter {iter}, iter_end {iter_end}
 	{}
