@@ -7,7 +7,7 @@
 StatementNode* Parser::parse_statement()
 {
 	switch (token_iter->type) {
-		// Return statement
+			// Return statement
 		case K_RETURN: {
 			return parse_return();
 		}

@@ -225,9 +225,9 @@ Type* Parser::parse_type()
 			++token_iter;
 			return t;
 		}
-		
+
 		default: {
-		    break;
+			break;
 		}
 	}
 

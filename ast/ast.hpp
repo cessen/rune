@@ -19,8 +19,7 @@ struct CodeSlice {
 	unsigned int column = 0;
 	StringSlice text;
 
-	CodeSlice& operator=(const Token& token)
-	{
+	CodeSlice& operator=(const Token& token) {
 		line = token.line;
 		column = token.column;
 		text = token.text;
@@ -42,8 +41,7 @@ struct ASTNode {
 
 	virtual ~ASTNode() {}
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "EMPTY_ASTNode";
 	}
@@ -56,8 +54,7 @@ struct ASTNode {
  * Base class for Expression and Declaration nodes.
  */
 struct StatementNode: ASTNode {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "EMPTY_Statement";
 	}
@@ -71,9 +68,9 @@ struct ExprNode: StatementNode {
 	Type* eval_type = nullptr;  // Type that the expression evaluates to
 
 	virtual void print(int indent) {
-        print_indent(indent);
-        std::cout << "Unknown Expression \"" << code.text << "\"";
-    }
+		print_indent(indent);
+		std::cout << "Unknown Expression \"" << code.text << "\"";
+	}
 };
 
 
@@ -86,10 +83,9 @@ struct DeclNode : StatementNode {
 	ExprNode* initializer = nullptr;
 
 	DeclNode() {}
-	DeclNode(StringSlice name, Type* type, ExprNode* init) : name{ name }, type{ type }, initializer{ init } {}
+	DeclNode(StringSlice name, Type* type, ExprNode* init) : name { name }, type { type }, initializer { init } {}
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "EMPTY_Decl";
 	}
@@ -104,8 +100,7 @@ struct NamespaceNode: ASTNode {
 	Slice<NamespaceNode*> namespaces;
 	Slice<DeclNode*> declarations;
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "namespace " << name << " {" << std::endl;
 		for (auto& n: namespaces) {
@@ -128,8 +123,7 @@ struct NamespaceNode: ASTNode {
 struct ScopeNode: ExprNode {
 	Slice<StatementNode*> statements;
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "(\n";
 		for (auto &e: statements) {
@@ -146,8 +140,7 @@ struct ScopeNode: ExprNode {
  * Literal node base class.
  */
 struct LiteralNode: ExprNode {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "EMPTY_Literal";
 	}
@@ -163,8 +156,7 @@ struct LiteralNode: ExprNode {
 struct ReturnNode: StatementNode {
 	ExprNode* expression;
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "RETURN" << std::endl;
 		expression->print(indent + 1);
@@ -178,8 +170,7 @@ struct ReturnNode: StatementNode {
 ////////////////////////////////////////////////////////////////
 
 struct ConstantDeclNode: DeclNode {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		// Name
 		print_indent(indent);
 		std::cout << "CONSTANT_DECL " << name << std::endl;
@@ -202,10 +193,9 @@ struct VariableDeclNode : DeclNode {
 	bool mut;
 
 	VariableDeclNode() {}
-	VariableDeclNode(StringSlice name, Type* type, ExprNode* init, bool mut) : DeclNode(name, type, init), mut{ mut } {}
+	VariableDeclNode(StringSlice name, Type* type, ExprNode* init, bool mut) : DeclNode(name, type, init), mut { mut } {}
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		// Name
 		print_indent(indent);
 		std::cout << "VARIABLE_DECL " << name;
@@ -238,8 +228,7 @@ struct NominalTypeDeclNode : DeclNode {
 
 struct IntegerLiteralNode: LiteralNode {
 	StringSlice text;
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << text.to_string();
 	}
@@ -255,8 +244,7 @@ struct FuncLiteralNode: LiteralNode {
 	Type* return_type;
 	ScopeNode* body;
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		// Function
 		print_indent(indent);
 		std::cout << "FUNCTION" << std::endl;
@@ -289,8 +277,7 @@ struct FuncLiteralNode: LiteralNode {
 ////////////////////////////////////////////////////////////////
 
 struct EmptyExprNode : ExprNode {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "EMPTY_Expr";
 	}
@@ -298,8 +285,7 @@ struct EmptyExprNode : ExprNode {
 
 struct AddressOfNode : ExprNode {
 	ExprNode* expr;
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "ADDRESS_OF" << std::endl;
 		expr->print(indent + 1);
@@ -308,8 +294,7 @@ struct AddressOfNode : ExprNode {
 
 struct DerefNode : ExprNode {
 	ExprNode* expr;
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "DEREF" << std::endl;
 		expr->print(indent + 1);
@@ -320,15 +305,13 @@ struct VariableNode: ExprNode {
 	VariableDeclNode* declaration;
 
 	VariableNode() {}
-	VariableNode(VariableDeclNode* decl) : declaration{ decl }
-	{
+	VariableNode(VariableDeclNode* decl) : declaration { decl } {
 		assert(declaration != nullptr);
 
 		eval_type = nullptr;
 	}
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		// Name
 		print_indent(indent);
 		std::cout << declaration->name;
@@ -339,15 +322,13 @@ struct ConstantNode : ExprNode {
 	ConstantDeclNode* declaration;
 
 	ConstantNode() {}
-	ConstantNode(ConstantDeclNode* decl) : declaration{ decl }
-	{
+	ConstantNode(ConstantDeclNode* decl) : declaration { decl } {
 		assert(declaration != nullptr);
 
 		eval_type = nullptr;
 	}
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		// Name
 		print_indent(indent);
 		std::cout << declaration->name;
@@ -358,8 +339,7 @@ struct FuncCallNode: ExprNode {
 	StringSlice name; //TODO change to declaration pointer
 	Slice<ExprNode*> parameters;
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		// Name
 		print_indent(indent);
 		std::cout << "CALL " << name;
@@ -376,8 +356,7 @@ struct AssignmentNode: ExprNode {
 	ExprNode* lhs;
 	ExprNode* rhs;
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		print_indent(indent);
 		std::cout << "ASSIGNMENT\n";
 		lhs->print(indent+1);
@@ -397,8 +376,7 @@ public:
 	NamespaceNode* root;
 	MemoryArena<> store; // Memory store for nodes
 
-	void print()
-	{
+	void print() {
 		root->print(0);
 	}
 

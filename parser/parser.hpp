@@ -29,29 +29,24 @@ public:
 	Token token;
 	char error_message[PARSE_ERROR_MESSAGE_MAX_LENGTH];
 
-	ParseError(Token token): token {token}
-	{
+	ParseError(Token token): token {token} {
 		error_message[0] = '\0';
 	}
 
-	ParseError(Token token, const std::string& message): token {token}
-	{
+	ParseError(Token token, const std::string& message): token {token} {
 		init_message(message.data(), message.size());
 	}
 
-	ParseError(Token token, const char* message): token {token}
-	{
+	ParseError(Token token, const char* message): token {token} {
 		const auto len = strlen(message);
 		init_message(message, len);
 	}
 
 // HACK: MSVC 2012/2013 doesn't support `noexcept`
 #ifdef _MSC_VER
-	virtual const char* what() const
-	{
+	virtual const char* what() const {
 #else
-	virtual const char* what() const noexcept
-	{
+	virtual const char* what() const noexcept {
 #endif
 		return error_message;
 	}
@@ -60,8 +55,7 @@ public:
 
 
 private:
-	void init_message(const char* message, size_t message_length)
-	{
+	void init_message(const char* message, size_t message_length) {
 		const size_t len = message_length <= PARSE_ERROR_MESSAGE_MAX_LENGTH ? message_length : PARSE_ERROR_MESSAGE_MAX_LENGTH;
 
 		for (int i = 0; i < len; ++i) {
@@ -151,30 +145,26 @@ private:
 	// Helper Methods
 	////////////////////
 
-	void skip_docstrings()
-	{
+	void skip_docstrings() {
 		while (token_iter->type == DOC_STRING)
 			++token_iter;
 	}
 
 
-	void skip_newlines()
-	{
+	void skip_newlines() {
 		while (token_iter->type == NEWLINE)
 			++token_iter;
 	}
 
 
-	void skip_docstrings_and_newlines()
-	{
+	void skip_docstrings_and_newlines() {
 		while (token_iter->type == DOC_STRING || token_iter->type == NEWLINE)
 			++token_iter;
 	}
 
 
 	// Returns whether the token is a function identifier or operator
-	bool token_is_const_function(Token t)
-	{
+	bool token_is_const_function(Token t) {
 		if (t.type == OPERATOR) {
 			return true;
 		}
@@ -185,12 +175,11 @@ private:
 			return false;
 		}
 	}
-	
+
 
 	// Returns whether the token is a terminator token, i.e. a token
 	// that ends an expression.
-	bool token_is_terminator(Token t)
-	{
+	bool token_is_terminator(Token t) {
 		return (
 		           t.type == NEWLINE ||
 		           t.type == COMMA ||
@@ -201,16 +190,14 @@ private:
 	}
 
 
-	void add_op_prec(const char* op, int prec)
-	{
+	void add_op_prec(const char* op, int prec) {
 		auto itr = binary_op_list.cend();
 		binary_op_list.append(op);
 		op_prec.emplace(StringSlice(itr, binary_op_list.cend()), prec);
 	}
 
 
-	int get_op_prec(StringSlice symbol)
-	{
+	int get_op_prec(StringSlice symbol) {
 		if (op_prec.count(symbol) > 0)
 			return op_prec[symbol];
 		else
@@ -224,8 +211,7 @@ private:
 	//////////////////////////////////////////////
 
 	// Prints an error and then throws it
-	void parsing_error(Token t, std::string msg = "")
-	{
+	void parsing_error(Token t, std::string msg = "") {
 		std::ostringstream fmt;
 		fmt << "\x1b[31;1mParse error:\033[0m \033[1m" << file_path << ":" << t.line + 1 << ":" << t.column << ":\033[0m\n    " << msg;
 		std::cout << fmt.str() << "\n\n";

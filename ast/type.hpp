@@ -46,20 +46,17 @@ enum struct TypeClass {
 struct Type {
 	StringSlice name;
 	virtual TypeClass type_class() const = 0;
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		for (int i = 0; i < indent; ++i) {
 			std::cout << "\t";
 		}
 	};
 
-	virtual bool operator==(const Type& other) const
-	{
+	virtual bool operator==(const Type& other) const {
 		return type_class() == other.type_class();
 	}
 
-	virtual bool operator!=(const Type& other) const
-	{
+	virtual bool operator!=(const Type& other) const {
 		return !(*this == other);
 	}
 };
@@ -68,20 +65,18 @@ struct Type {
 /**
  * Unknown nominal type.  Used as a stand-in for nominal types before the
  * actual type is known.  'name' must be filled in.
- * 
+ *
  * This is distict from completely unspecified types, which are represented
  * in the AST by nullptr's.
  */
 struct Unknown_T: Type {
-    virtual TypeClass type_class() const
-    {
-        return TypeClass::Unknown;
-    }
-    virtual void print(int indent)
-    {
-        Type::print(indent);
-        std::cout << "Unknown_T \"" << name << "\"";
-    }
+	virtual TypeClass type_class() const {
+		return TypeClass::Unknown;
+	}
+	virtual void print(int indent) {
+		Type::print(indent);
+		std::cout << "Unknown_T \"" << name << "\"";
+	}
 };
 
 
@@ -91,12 +86,10 @@ struct Unknown_T: Type {
  * return anything.
  */
 struct Void_T: Type {
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Void;
 	}
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "Void";
 	}
@@ -112,8 +105,7 @@ struct Void_T: Type {
 struct Atom_T: Type {
 	StringSlice value;
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom;
 	}
 };
@@ -121,14 +113,12 @@ struct Atom_T: Type {
 
 // An 8-bit byte
 struct Byte_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "Byte";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_Byte;
 	}
 };
@@ -136,56 +126,48 @@ struct Byte_T : Atom_T {
 
 // An 8-bit integer
 struct Int8_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "Int8";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_Int8;
 	}
 };
 
 // An 16-bit integer
 struct Int16_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "Int16";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_Int16;
 	}
 };
 
 // An 32-bit integer
 struct Int32_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "Int32";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_Int32;
 	}
 };
 
 // An 64-bit integer
 struct Int64_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "Int64";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_Int64;
 	}
 };
@@ -193,56 +175,48 @@ struct Int64_T : Atom_T {
 
 // An unsigned 8-bit integer
 struct UInt8_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "UInt8";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_UInt8;
 	}
 };
 
 // An unsigned 16-bit integer
 struct UInt16_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "UInt16";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_UInt16;
 	}
 };
 
 // An unsigned 32-bit integer
 struct UInt32_T: Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "UInt32";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_UInt32;
 	}
 };
 
 // An unsigned 64-bit integer
 struct UInt64_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "UInt64";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_UInt64;
 	}
 };
@@ -250,42 +224,36 @@ struct UInt64_T : Atom_T {
 
 // A 16-bit float
 struct Float16_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "Float16";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_Float16;
 	}
 };
 
 // A 32-bit float
 struct Float32_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "Float32";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_Float32;
 	}
 };
 
 // A 64-bit float
 struct Float64_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "Float64";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_Float64;
 	}
 };
@@ -293,14 +261,12 @@ struct Float64_T : Atom_T {
 
 // Unicode code point, 32 bits
 struct CodePoint_T : Atom_T {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "Code Point";
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Atom_CodePoint;
 	}
 };
@@ -314,15 +280,13 @@ struct CodePoint_T : Atom_T {
 
 // A raw pointer.  Points at a single piece of data in memory.
 struct Pointer_T : Type {
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "@";
 		type->print(0);
 	}
 
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Pointer;
 	}
 
@@ -332,8 +296,7 @@ struct Pointer_T : Type {
 
 // A raw slice.  Points at an array of data in memory.
 struct Slice_T: Type {
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Slice;
 	}
 
@@ -349,8 +312,7 @@ struct Slice_T: Type {
 
 // An array.  Contains a fixed number of elements of the same type.
 struct Array_T: Type {
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Array;
 	}
 
@@ -361,8 +323,7 @@ struct Array_T: Type {
 
 // A tuple.  Contains a fixed number of elements of varying types.
 struct Tuple_T: Type {
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Tuple;
 	}
 
@@ -373,8 +334,7 @@ struct Tuple_T: Type {
 // A struct.  A named type that Contains a fixed number of elements of
 // varying types in named fields.
 struct Struct_T: Type {
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Struct;
 	}
 
@@ -389,16 +349,14 @@ struct Struct_T: Type {
 ///////////////////////////////////////////////////////////
 
 struct Function_T: Type {
-	virtual TypeClass type_class() const
-	{
+	virtual TypeClass type_class() const {
 		return TypeClass::Function;
 	}
 
 	Slice<Type*> parameter_ts;  // The types of the parameters of the function
 	Type* return_t;  // The return type of the function
 
-	virtual void print(int indent)
-	{
+	virtual void print(int indent) {
 		Type::print(indent);
 		std::cout << "fn [";
 		bool first = true;

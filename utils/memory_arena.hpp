@@ -27,8 +27,7 @@ class MemoryArena
 	std::vector<Chunk> chunks;
 
 
-	void add_chunk(size_t size)
-	{
+	void add_chunk(size_t size) {
 		Chunk c;
 		c.size = size;
 		if (size > 0) {
@@ -37,8 +36,7 @@ class MemoryArena
 		chunks.push_back(c);
 	}
 
-	void clear_chunks()
-	{
+	void clear_chunks() {
 		for (auto& c: chunks) {
 			if (c.data != nullptr)
 				delete[] c.data;
@@ -51,8 +49,7 @@ class MemoryArena
 	 * returns a pointer to the front of that space.
 	 */
 	template <typename T>
-	T* _alloc(size_t count)
-	{
+	T* _alloc(size_t count) {
 		// Figure out how much padding we need between elements for proper
 		// memory alignment if we put them in an array.
 		const auto array_pad = (alignof(T) - (sizeof(T) % alignof(T))) % alignof(T);
@@ -101,14 +98,12 @@ class MemoryArena
 
 
 public:
-	MemoryArena()
-	{
+	MemoryArena() {
 		// Start with a single chunk of size zero,
 		// to simplify the logic in _alloc()
 		add_chunk(0);
 	}
-	~MemoryArena()
-	{
+	~MemoryArena() {
 		clear_chunks();
 	}
 
@@ -118,12 +113,10 @@ public:
 	// the copy-constructors behave like
 	// move constructors.
 #ifdef _MSC_VER
-	MemoryArena(MemoryArena& other)
-	{
+	MemoryArena(MemoryArena& other) {
 		chunks = std::move(other.chunks);
 	}
-	MemoryArena& operator=(MemoryArena& other)
-	{
+	MemoryArena& operator=(MemoryArena& other) {
 		chunks = std::move(other.chunks);
 		return *this;
 	}
@@ -131,12 +124,10 @@ public:
 	MemoryArena(MemoryArena& other) = delete;
 	MemoryArena& operator=(MemoryArena& other) = delete;
 #endif
-	MemoryArena(MemoryArena&& other)
-	{
+	MemoryArena(MemoryArena&& other) {
 		chunks = std::move(other.chunks);
 	}
-	MemoryArena& operator=(MemoryArena&& other)
-	{
+	MemoryArena& operator=(MemoryArena&& other) {
 		chunks = std::move(other.chunks);
 		return *this;
 	}
@@ -147,8 +138,7 @@ public:
 	 * raw pointer to that space.
 	 */
 	template <typename T>
-	T* alloc()
-	{
+	T* alloc() {
 		return _alloc<T>(1);
 	}
 
@@ -158,8 +148,7 @@ public:
 	 * init, and returns a raw pointer to that space.
 	 */
 	template <typename T>
-	T* alloc(const T& init)
-	{
+	T* alloc(const T& init) {
 		auto ptr = _alloc<T>(1);
 		*ptr = init;
 		return ptr;
@@ -171,8 +160,7 @@ public:
 	 * a Slice to that space.
 	 */
 	template <typename T>
-	Slice<T> alloc_array(size_t count)
-	{
+	Slice<T> alloc_array(size_t count) {
 		if (count <= 0)
 			return Slice<T>();
 
@@ -185,8 +173,7 @@ public:
 	 * iter's contents over.  Returns a Slice to that memory.
 	 */
 	template <typename ITER, typename T=typename ITER::value_type>
-	Slice<T> alloc_from_iters(ITER begin, ITER end)
-	{
+	Slice<T> alloc_from_iters(ITER begin, ITER end) {
 		const size_t size = std::distance(begin, end);
 		if (size <= 0)
 			return Slice<T>();

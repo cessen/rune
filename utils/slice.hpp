@@ -19,52 +19,43 @@ public:
 	Slice(T* ptr, size_t size): _data {ptr}, _size {size}
 	{}
 
-	T& operator*()
-	{
+	T& operator*() {
 		assert(_data != nullptr);
 		return *_data;
 	}
 
-	const T& operator*() const
-	{
+	const T& operator*() const {
 		assert(_data != nullptr);
 		return *_data;
 	}
 
-	T& operator[](size_t i)
-	{
+	T& operator[](size_t i) {
 		assert(_data != nullptr && _size > i);
 		return *(_data+i);
 	}
 
-	const T& operator[](size_t i) const
-	{
+	const T& operator[](size_t i) const {
 		assert(_data != nullptr && _size > i);
 		return *(_data+i);
 	}
 
-	size_t size() const
-	{
+	size_t size() const {
 		return _size;
 	}
 
-	T* begin()
-	{
+	T* begin() {
 		return _data;
 	}
 
-	T* end()
-	{
+	T* end() {
 		return _data + _size;
 	}
 
-	T const * begin() const
-	{
+	T const * begin() const {
 		return _data;
 	}
 
-	T const * end() const
-	{
+	T const * end() const {
 		return _data + _size;
 	}
 };
