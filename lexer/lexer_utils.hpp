@@ -11,9 +11,11 @@ public:
 
 // HACK: MSVC 2012/2013 doesn't support `noexcept`
 #ifdef _MSC_VER
-	virtual const char* what() const {
+	virtual const char* what() const
+	{
 #else
-	virtual const char* what() const noexcept {
+	virtual const char* what() const noexcept
+	{
 #endif
 		return "Invalid UTF8 sequence.";
 	}

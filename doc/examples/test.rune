@@ -6,11 +6,11 @@ const foo = fn [x: i32, y: i32] -> i32 (
     return x + y
 )
 
-type Yar: struct {
-	x: i32,
-	y: i32,
-	z: i32,
-}
+#type Yar: struct {
+#	x: i32,
+#	y: i32,
+#	z: i32,
+#}
 
 #type Meter: f32
 
@@ -19,10 +19,10 @@ fn main[] -> i32 (
 	val d: i32 = 42
 	val ptr: @i32 = @d
 	val mem: @i32 = cmalloc[4]
-	val yar: @Yar = cmalloc[12]
+	#val yar: @Yar = cmalloc[12]
 	$mem = 41
 	val b: i32 = $mem
 	cfree[mem]
-	cfree[yar]
+	#cfree[yar]
 	return foo[$ptr, b]
 )

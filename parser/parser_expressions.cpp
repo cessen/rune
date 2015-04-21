@@ -47,7 +47,7 @@ ExprNode* Parser::parse_primary_expression()
 		case LPAREN:
 			return parse_scope();
 
-			// Dereference
+		// Dereference
 		case DOLLAR: {
 			auto node = ast.store.alloc<DerefNode>();
 			node->code = *token_iter;
@@ -96,7 +96,7 @@ ExprNode* Parser::parse_primary_expression()
 			}
 			// Token is some other identifier
 			else {
-				ExprNode* var = ast.store.alloc<ExprNode>();
+				ExprNode* var = ast.store.alloc<UnknownIdentifierNode>();
 				var->code = *token_iter;
 				++token_iter;
 				return var;

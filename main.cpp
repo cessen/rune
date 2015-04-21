@@ -48,6 +48,8 @@ int main(int argc, char** argv)
 		throw e;
 	}
 
+	ast.link_references();
+
 	if (!ast.check_types()) {
 		printf("Shame on you!");
 	}

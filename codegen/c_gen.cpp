@@ -13,9 +13,11 @@ public:
 
 	// HACK: MSVC 2012/2013 doesn't support `noexcept`
 #ifdef _MSC_VER
-	virtual char const * what() const {
+	virtual char const * what() const
+	{
 #else
-	virtual const char* what() const noexcept {
+	virtual const char* what() const noexcept
+	{
 #endif
 		return "Function not yet implemented.";
 	}

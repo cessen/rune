@@ -11,7 +11,8 @@ AST parse_tokens(const char* file_path, const std::vector<Token>& tokens)
 }
 
 
-Parser::Parser(std::string file_path, const std::vector<Token>& tokens): file_path {file_path}, begin {tokens.cbegin()}, end {tokens.cend()}, token_iter {tokens.cbegin()} {
+Parser::Parser(std::string file_path, const std::vector<Token>& tokens): file_path {file_path}, begin {tokens.cbegin()}, end {tokens.cend()}, token_iter {tokens.cbegin()}
+{
 	// Build operator precidence map
 	// Note that this is only for function-like binary operators.
 	// Non-function-like operators such as . have their own rules.
@@ -67,7 +68,7 @@ AST Parser::parse()
 
 		// Call the appropriate parsing function for the token type
 		switch (token_iter->type) {
-				// Declarations
+			// Declarations
 			case K_CONST:
 			case K_VAL:
 			case K_VAR:
@@ -86,7 +87,7 @@ AST Parser::parse()
 			case LEX_EOF:
 				goto done;
 
-				// Something else, not allowed at this level
+			// Something else, not allowed at this level
 			default: {
 				// Error
 				parsing_error(*token_iter, "Only declarations are allowed at the namespace level");

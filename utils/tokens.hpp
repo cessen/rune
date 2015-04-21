@@ -5,81 +5,81 @@
 #include "string_slice.hpp"
 
 enum TokenType {
-    // Catch-all
-    UNKNOWN,
+	// Catch-all
+	UNKNOWN,
 
-    // EOF
-    LEX_EOF,
+	// EOF
+	LEX_EOF,
 
-    // User-defined symbols
-    IDENTIFIER,
-    OPERATOR,
+	// User-defined symbols
+	IDENTIFIER,
+	OPERATOR,
 
-    // Literals
-    INTEGER_LIT,
-    FLOAT_LIT,
-    STRING_LIT,
-    RAW_STRING_LIT,
+	// Literals
+	INTEGER_LIT,
+	FLOAT_LIT,
+	STRING_LIT,
+	RAW_STRING_LIT,
 
-    // Documentation string
-    DOC_STRING,
+	// Documentation string
+	DOC_STRING,
 
-    // Catch-all for valid but as-of-yet unused symbols
-    RESERVED,
+	// Catch-all for valid but as-of-yet unused symbols
+	RESERVED,
 
-    // Punctuation
-    NEWLINE,
-    LPAREN,
-    RPAREN,
-    LSQUARE,
-    RSQUARE,
-    LCURLY,
-    RCURLY,
-    LGENERIC,
-    RGENERIC,
-    AT,
-    COMMA,
-    PERIOD,
-    COLON,
-    BACKTICK,
-    DOLLAR,
+	// Punctuation
+	NEWLINE,
+	LPAREN,
+	RPAREN,
+	LSQUARE,
+	RSQUARE,
+	LCURLY,
+	RCURLY,
+	LGENERIC,
+	RGENERIC,
+	AT,
+	COMMA,
+	PERIOD,
+	COLON,
+	BACKTICK,
+	DOLLAR,
 
-    // Keywords
-    K_NAMESPACE,
-    K_PUB,
-    K_UNSAFE,
+	// Keywords
+	K_NAMESPACE,
+	K_PUB,
+	K_UNSAFE,
 
-    K_CONST,
-    K_VAL,
-    K_VAR,
+	K_CONST,
+	K_VAL,
+	K_VAR,
 
-    K_MUT,
-    K_REF,
+	K_MUT,
+	K_REF,
 
-    K_FN,
+	K_FN,
 
-    K_STRUCT,
-    K_ENUM,
-    K_UNION,
+	K_STRUCT,
+	K_ENUM,
+	K_UNION,
 
-    K_TRAIT,
-    K_IS,
+	K_TRAIT,
+	K_IS,
 
-    K_IF,
-    K_ELSE,
-    K_LOOP,
-    K_WHILE,
-    K_UNTIL,
-    K_FOR,
-    K_IN,
-    K_BREAK,
-    K_CONTINUE,
-    K_RETURN,
+	K_IF,
+	K_ELSE,
+	K_LOOP,
+	K_WHILE,
+	K_UNTIL,
+	K_FOR,
+	K_IN,
+	K_BREAK,
+	K_CONTINUE,
+	K_RETURN,
 
-    K_AS,
+	K_AS,
 
-    K_ALIAS,
-    K_TYPE,
+	K_ALIAS,
+	K_TYPE,
 };
 
 struct Token {

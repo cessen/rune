@@ -1,4 +1,7 @@
+#include <exception>
+
 #include "ast.hpp"
+#include "scope_stack.hpp"
 #include "type.hpp"
 
 bool is_node_const_func_decl(ASTNode* node)
@@ -33,6 +36,146 @@ bool is_node_constant(ASTNode* node)
 static void _report_type_error(ASTNode* node_a, ASTNode* node_b)
 {
 	std::cout << "ERROR(" << node_a->code.line + 1 << ", " << node_a->code.column + 1 << ") Type mismatch between \"" << node_a->code.text << "\" and \"" << node_b->code.text << "\"" << std::endl;
+}
+
+void AST::_link_refs_helper(ASTNode **node_ref, ScopeStack<DeclNode*> *scope_stack)
+{
+	ASTNode *_node = *node_ref;
+	if (_node == nullptr) {
+		// TODO: is this even remotely right????
+		// (Ha ha!  Screw you, future us!)
+		return;
+	}
+
+	if (auto node = dynamic_cast<NamespaceNode*>(_node)) {
+		scope_stack->push_scope();
+
+		for (auto &ns : node->namespaces) {
+			_link_refs_helper(reinterpret_cast<ASTNode**>(&ns), scope_stack);
+		}
+
+		for (auto &decl : node->declarations) {
+			_link_refs_helper(reinterpret_cast<ASTNode**>(&decl), scope_stack);
+		}
+
+		scope_stack->pop_scope();
+	}
+	else if (auto node = dynamic_cast<ScopeNode*>(_node)) {
+		scope_stack->push_scope();
+		for (auto &statement : node->statements) {
+			_link_refs_helper(reinterpret_cast<ASTNode**>(&statement), scope_stack);
+		}
+		scope_stack->pop_scope();
+	}
+	else if (auto node = dynamic_cast<FuncLiteralNode*>(_node)) {
+		scope_stack->push_scope();
+
+		// Push parameters onto the scope stack
+		for (auto &param : node->parameters) {
+			_link_refs_helper(reinterpret_cast<ASTNode**>(&param), scope_stack);
+		}
+
+		// Recurse into body
+		_link_refs_helper(reinterpret_cast<ASTNode**>(&node->body), scope_stack);
+
+		scope_stack->pop_scope();
+	}
+
+	//////////////////////////////////
+	// Declarations
+	// TODO: Handle hooking up nominal types, good luck!
+	else if (auto node = dynamic_cast<ConstantDeclNode*>(_node)) {
+		_link_refs_helper(reinterpret_cast<ASTNode**>(&node->initializer), scope_stack);
+		scope_stack->push_symbol(node->name, node);
+	}
+	else if (auto node = dynamic_cast<VariableDeclNode*>(_node)) {
+		_link_refs_helper(reinterpret_cast<ASTNode**>(&node->initializer), scope_stack);
+		scope_stack->push_symbol(node->name, node);
+	}
+	else if (auto node = dynamic_cast<NominalTypeDeclNode*>(_node)) {
+		scope_stack->push_symbol(node->name, node);
+	}
+
+	//////////////////////////////////
+	// Expressions
+	else if (auto node = dynamic_cast<AddressOfNode*>(_node)) {
+		_link_refs_helper(reinterpret_cast<ASTNode**>(&node->expr), scope_stack);
+	}
+	else if (auto node = dynamic_cast<DerefNode*>(_node)) {
+		_link_refs_helper(reinterpret_cast<ASTNode**>(&node->expr), scope_stack);
+	}
+	else if (auto node = dynamic_cast<UnknownIdentifierNode*>(_node)) {
+		if (scope_stack->is_symbol_in_scope(node->code.text)) {
+			DeclNode* entry = (*scope_stack)[node->code.text];
+			if (dynamic_cast<VariableDeclNode*>(entry))
+				*node_ref = this->store.alloc<VariableNode>();
+			else if (dynamic_cast<ConstantDeclNode*>(entry))
+				*node_ref = this->store.alloc<ConstantDeclNode>();
+
+			(*node_ref)->code = _node->code;
+			_link_refs_helper(node_ref, scope_stack);
+		}
+		else {
+			// TODO proper error reporting
+			throw std::exception();
+		}
+	}
+	else if (auto node = dynamic_cast<VariableNode*>(_node)) {
+		if (scope_stack->is_symbol_in_scope(node->code.text)) {
+			if (auto decl = dynamic_cast<VariableDeclNode*>((*scope_stack)[node->code.text])) {
+				node->declaration = decl;
+			}
+			else {
+				// TODO proper error reporting
+				throw std::exception();
+			}
+		}
+		else {
+			// TODO proper error reporting
+			throw std::exception();
+		}
+	}
+	else if (auto node = dynamic_cast<ConstantNode*>(_node)) {
+		if (scope_stack->is_symbol_in_scope(node->code.text)) {
+			if (auto decl = dynamic_cast<ConstantDeclNode*>((*scope_stack)[node->code.text])) {
+				node->declaration = decl;
+			}
+			else {
+				// TODO proper error reporting
+				throw std::exception();
+			}
+		}
+		else {
+			// TODO proper error reporting
+			throw std::exception();
+		}
+	}
+	else if (auto node = dynamic_cast<FuncCallNode*>(_node)) {
+		for (auto &param : node->parameters) {
+			_link_refs_helper(reinterpret_cast<ASTNode**>(&param), scope_stack);
+		}
+	}
+	else if (auto node = dynamic_cast<AssignmentNode*>(_node)) {
+		_link_refs_helper(reinterpret_cast<ASTNode**>(&node->lhs), scope_stack);
+		_link_refs_helper(reinterpret_cast<ASTNode**>(&node->rhs), scope_stack);
+	}
+	else if (auto node = dynamic_cast<ReturnNode*>(_node)) {
+		_link_refs_helper(reinterpret_cast<ASTNode**>(&node->expression), scope_stack);
+	}
+	else if (dynamic_cast<LiteralNode*>(_node) ||
+	         dynamic_cast<EmptyExprNode*>(_node)) {
+		return;
+	}
+	else {
+		// TODO proper error reporting
+		throw std::exception();
+	}
+}
+
+void AST::link_references()
+{
+	ScopeStack<DeclNode*> scope_stack;
+	_link_refs_helper(reinterpret_cast<ASTNode**>(&this->root), &scope_stack);
 }
 
 static bool _check_types_helper(ASTNode *_node)
