@@ -83,13 +83,34 @@ void AST::_link_refs_helper(ASTNode **node_ref, ScopeStack<DeclNode*> *scope_sta
 
 	//////////////////////////////////
 	// Declarations
-	// TODO: Handle hooking up nominal types, good luck!
 	else if (auto node = dynamic_cast<ConstantDeclNode*>(_node)) {
 		_link_refs_helper(reinterpret_cast<ASTNode**>(&node->initializer), scope_stack);
+
+		// Hook up nominal types
+		if (node->type->type_class() == TypeClass::Unknown) {
+			if (scope_stack->is_symbol_in_scope(node->type->name)) {
+				node->type = (*scope_stack)[node->type->name]->type;
+			}
+			else {
+				// TODO proper error reporting
+				throw std::exception();
+			}
+		}
 		scope_stack->push_symbol(node->name, node);
 	}
 	else if (auto node = dynamic_cast<VariableDeclNode*>(_node)) {
 		_link_refs_helper(reinterpret_cast<ASTNode**>(&node->initializer), scope_stack);
+
+		// Hook up nominal types
+		if (node->type->type_class() == TypeClass::Unknown) {
+			if (scope_stack->is_symbol_in_scope(node->type->name)) {
+				node->type = (*scope_stack)[node->type->name]->type;
+			}
+			else {
+				// TODO proper error reporting
+				throw std::exception();
+			}
+		}
 		scope_stack->push_symbol(node->name, node);
 	}
 	else if (auto node = dynamic_cast<NominalTypeDeclNode*>(_node)) {
